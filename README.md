@@ -1,4 +1,4 @@
 # fbt
 Folder Based Test-Runner
 
-Current Task -> create crate
+Current Task -> list all the folders inside tests
