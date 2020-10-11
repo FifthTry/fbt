@@ -1,0 +1,6 @@
+
+
+cmd = "cat one1"
+code = 1
+stdout = ''
+stderr = 'cat: one1: No such file or directory'
