@@ -8,7 +8,7 @@ fn main() {
         if !file_name.starts_with(".") &&
             entry.file_type().unwrap().is_dir()
         {
-            println!("File {:?} has full path {:?}",
+            println!("Test Case {:?} has full path {:?}",
                      file_name, entry.path());
         }
     }
