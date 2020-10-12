@@ -1,5 +1,5 @@
 [package]
-name = "test-runner"
+name = "fbt"
 version = "0.1.0"
 authors = ["Sitesh <siteshpattanaik001@gmail.com>"]
 edition = "2018"
