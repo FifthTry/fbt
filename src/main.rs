@@ -1,7 +1,7 @@
 use std::fs::read_dir;
 
 fn main() {
-    for entry_res in read_dir("../tests").unwrap() {
+    for entry_res in read_dir("./tests").unwrap() {
         let entry = entry_res.unwrap();
         let file_name_buf = entry.file_name();
         let file_name = file_name_buf.to_str().unwrap();
