@@ -1,4 +1,4 @@
 # fbt
 Folder Based Test-Runner
 
-Current Task -> list all the folders inside tests
+Current Task -> getting inside each folder to reach cmd.toml and input
