@@ -1,4 +1,7 @@
+mod types;
+
 use std::fs::{self, read_dir};
+use crate::types::Command;
 
 fn main() {
     for dirs in read_dir("./tests").unwrap() {
@@ -6,6 +9,10 @@ fn main() {
         let file_name = entry.file_name();
         let test_dir = file_name.to_str().unwrap();
         if !test_dir.starts_with(".") && entry.file_type().unwrap().is_dir() {
+            //Not testing fbt as of now
+            if test_dir.contains("fbt") {
+                continue
+            }
             println!("current folder {:?}", entry.path());
             let mut input_path = None;
             let mut cmd_toml_path = None;
@@ -30,7 +37,8 @@ fn main() {
 
             let contents = fs::read_to_string(cmd_toml_path.unwrap())
                 .expect("Something went wrong reading the file");
-            println!("{:?}", contents);
+            let command: Command = toml::from_str(&contents).unwrap();
+            println!("{:?}", command);
         }
     }
 }
