@@ -1,7 +1,7 @@
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
-pub struct Command {
+pub struct TestCommand {
     pub cmd: String,
     pub stdout: String
 }
