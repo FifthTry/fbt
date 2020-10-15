@@ -39,11 +39,12 @@ fn main() {
             let contents = fs::read_to_string(cmd_toml_path.unwrap())
                 .expect("Something went wrong reading the file");
             let test_cmd: TestCommand = toml::from_str(&contents).unwrap();
-            println!("{:?}", test_cmd);
+            println!("Command: {:?}", test_cmd);
 
-            let mut cmd = Command::new("pwd");
+            let args: Vec<&str> = test_cmd.cmd.split(" ").collect();
+            let mut cmd = Command::new(args[0]);
             cmd.current_dir(input_path.unwrap());
-            println!("to be exec {:?}",cmd);
+            cmd.arg(args[1]);
             let result = cmd.output().expect("process failed to execute");
             println!("result {:?}", result);
         }
