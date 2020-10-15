@@ -44,6 +44,7 @@ fn main() {
             let args: Vec<&str> = test_cmd.cmd.split(" ").collect();
             let mut cmd = Command::new(args[0]);
             cmd.current_dir(input_path.unwrap());
+            //will need to add code to handle multiple args
             cmd.arg(args[1]);
             let result = cmd.output().expect("process failed to execute");
             println!("result {:?}", result);
