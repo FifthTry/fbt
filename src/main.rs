@@ -1,5 +1,5 @@
 mod types;
-
+use std::str;
 use std::fs::{self, read_dir};
 use crate::types::TestCommand;
 use std::process::Command;
@@ -47,7 +47,18 @@ fn main() {
             //will need to add code to handle multiple args
             cmd.arg(args[1]);
             let result = cmd.output().expect("process failed to execute");
-            println!("result {:?}", result);
+            match str::from_utf8(&*result.stdout) {
+                Ok(output) => {
+                    if output == test_cmd.stdout.trim() {
+                        println!("Passed");
+                    } else {
+                        println!("Failed {:?}", result.stdout);
+                    }
+                }
+                Err(e) => {
+                    println!("Error : {:?}", format!("{}",e));
+                }
+            }
         }
     }
 }
