@@ -1,4 +1,8 @@
+mod types;
+use std::str;
 use std::fs::{self, read_dir};
+use crate::types::TestCommand;
+use std::process::{Command};
 
 fn main() {
     for dirs in read_dir("./tests").unwrap() {
@@ -6,6 +10,10 @@ fn main() {
         let file_name = entry.file_name();
         let test_dir = file_name.to_str().unwrap();
         if !test_dir.starts_with(".") && entry.file_type().unwrap().is_dir() {
+            //Not testing fbt as of now
+            if test_dir.contains("fbt") {
+                continue
+            }
             println!("current folder {:?}", entry.path());
             let mut input_path = None;
             let mut cmd_toml_path = None;
@@ -30,7 +38,21 @@ fn main() {
 
             let contents = fs::read_to_string(cmd_toml_path.unwrap())
                 .expect("Something went wrong reading the file");
-            println!("{:?}", contents);
+            let test_cmd: TestCommand = toml::from_str(&contents).unwrap();
+            println!("Command: {:?}", test_cmd);
+
+            let args: Vec<&str> = test_cmd.cmd.split(" ").collect();
+            let mut cmd = Command::new(args[0]);
+            cmd.current_dir(input_path.unwrap());
+            //will need to add code to handle multiple args
+            cmd.arg(args[1]);
+            let result = cmd.output().expect("process failed to execute");
+            println!("cmd result {:?}", result);
+            if String::from_utf8(result.stdout).unwrap() == test_cmd.stdout.trim() && result.status.success() {
+                println!("Passed");
+            } else {
+                println!("Failed {:?}", String::from_utf8(result.stderr).unwrap().trim());
+            }
         }
     }
 }
