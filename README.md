@@ -1,4 +1,4 @@
 # fbt
 Folder Based Test-Runner
 
-Current Task -> executing the cmd inside cmd.toml
+Current Task -> I am kinda stuck now. What needs to be done next.
