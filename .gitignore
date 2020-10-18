@@ -11,3 +11,10 @@ Cargo.lock
 .idea
 
 test-runner/target
+
+.cargo
+.doit.db
+.zsh_history
+venv
+target-nix
+__pycache__
