@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 pub mod types;
 
 pub fn test_all() -> anyhow::Result<bool> {
@@ -6,6 +8,18 @@ pub fn test_all() -> anyhow::Result<bool> {
     }
 
     Ok(true)
+}
+
+fn get_file_path(dir: std::fs::DirEntry, file: &str) -> anyhow::Result<Option<PathBuf>> {
+    for dir in std::fs::read_dir(dir.path())? {
+        let entry = dir?;
+        if entry.file_type()?.is_dir()
+            && entry.file_name().to_str().unwrap_or("").contains(file)
+        {
+            return Ok(Some(entry.path()));
+        }
+    }
+    Ok(None)
 }
 
 fn test_one(entry: std::fs::DirEntry) -> anyhow::Result<bool> {
@@ -27,6 +41,17 @@ fn test_one(entry: std::fs::DirEntry) -> anyhow::Result<bool> {
         println!("current folder {:?}", entry.path());
         let mut input_path = None; // TODO: remove mut, must it be option?
         let mut cmd_toml_path = None; // TODO: remove mut
+
+        let input_path = match get_file_path(entry, "input"){
+            Ok(res) => if let Some(pathbuf) = res {
+                pathbuf
+            } else {
+                return Ok(false);
+            }
+            _ => {
+                return Ok(false)
+            }
+        };
         for inner_dirs in std::fs::read_dir(entry.path())? {
             let entry1 = inner_dirs?;
             if entry1.file_type()?.is_dir()
