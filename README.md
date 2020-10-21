@@ -1,7 +1,6 @@
 # fbt
 Folder Based Test-Runner
 
-- [ ] remove all unwraps()
 - [ ] split into fbt and fbt_lib crates (use workspace)
 - [ ] split ui from logic
 - [ ] better output: use colored

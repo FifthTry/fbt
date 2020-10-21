@@ -91,15 +91,10 @@ fn test_one(entry: std::fs::DirEntry) -> anyhow::Result<bool> {
         cmd.arg(args[1]);
         let result = cmd.output()?;
         println!("cmd result {:?}", result);
-        if String::from_utf8(result.stdout).unwrap() == test_cmd.stdout.trim()
-            && result.status.success()
-        {
+        if String::from_utf8(result.stdout)? == test_cmd.stdout.trim() && result.status.success() {
             println!("Passed");
         } else {
-            println!(
-                "Failed {:?}",
-                String::from_utf8(result.stderr).unwrap().trim()
-            );
+            println!("Failed {:?}", String::from_utf8(result.stderr)?.trim());
         }
     }
 
