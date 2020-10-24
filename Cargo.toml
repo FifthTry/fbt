@@ -4,8 +4,8 @@ version = "0.1.0"
 authors = ["Sitesh <siteshpattanaik001@gmail.com>"]
 edition = "2018"
 
+[workspace]
+members = ["src/fbt_lib"]
+
 [dependencies]
-anyhow = "1"
-serde = { version = "1", features = ["derive"] }
-toml = "0"
-vec1 = "1"
+fbt_lib = {path="src/fbt_lib"}
