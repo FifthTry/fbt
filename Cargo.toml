@@ -5,7 +5,7 @@ authors = ["Sitesh <siteshpattanaik001@gmail.com>"]
 edition = "2018"
 
 [workspace]
-members = ["src/fbt_lib"]
+members = ["fbt_lib"]
 
 [dependencies]
-fbt_lib = {path="src/fbt_lib"}
+fbt_lib = {path="fbt_lib"}
