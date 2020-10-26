@@ -12,6 +12,7 @@ pub struct TestResult {
     pub duration: std::time::Duration,
 }
 
+#[derive(Debug)]
 pub struct SingleTestResult {
     pub id: String, // 01_basic
     // if Ok(true) => test passed
@@ -26,6 +27,7 @@ pub enum OverallFailure {
     TestsFolderNotReadable(String),
 }
 
+#[derive(Debug)]
 pub enum Failure {
     CmdTomlMissing,
     CmdTomlInvalid {

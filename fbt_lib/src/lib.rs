@@ -1,4 +1,6 @@
+use crate::types::{Failure, SingleTestResult};
 use std::path::PathBuf;
+use std::time::Instant;
 
 pub mod types;
 
@@ -30,6 +32,15 @@ fn get_file_path(
         }
     }
     Ok(None)
+}
+
+fn get_err_from_stderr(stderr: &str) -> Failure {
+    if stderr.contains("No such file or directory") {
+        return Failure::ExpectedFileMissing {
+            expected: stderr.to_string(),
+        };
+    }
+    return Failure::CmdTomlMissing;
 }
 
 fn test_one(entry: std::fs::DirEntry) -> anyhow::Result<bool> {
@@ -89,13 +100,25 @@ fn test_one(entry: std::fs::DirEntry) -> anyhow::Result<bool> {
         cmd.current_dir(input_path);
         //will need to add code to handle multiple args
         cmd.arg(args[1]);
-        let result = cmd.output()?;
-        println!("cmd result {:?}", result);
-        if String::from_utf8(result.stdout)? == test_cmd.stdout.trim() && result.status.success() {
-            println!("Passed");
+        let start = Instant::now();
+        let cmd_result = cmd.output()?;
+        let duration = start.elapsed();
+        println!("cmd result {:?}", cmd_result);
+        let result = if String::from_utf8(cmd_result.stdout)? == test_cmd.stdout.trim()
+            && cmd_result.status.success()
+        {
+            Ok(true)
         } else {
-            println!("Failed {:?}", String::from_utf8(result.stderr)?.trim());
-        }
+            Err(vec1::vec1![get_err_from_stderr(
+                String::from_utf8(cmd_result.stderr)?.trim()
+            )])
+        };
+        let single_result = SingleTestResult {
+            id: format!("{:?}", entry.path()),
+            result: result,
+            duration: duration,
+        };
+        println!("{:?}", single_result);
     }
 
     Ok(true)
