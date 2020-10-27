@@ -1,15 +1,22 @@
-use crate::types::{Failure, SingleTestResult};
+use crate::types::{Failure, SingleTestResult, TestResult};
 use std::path::PathBuf;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 pub mod types;
 
-pub fn test_all() -> anyhow::Result<bool> {
+pub fn test_all() -> anyhow::Result<TestResult> {
+    let mut results = vec![];
+    let mut duration = Duration::from_millis(0);
     for dir in std::fs::read_dir("./tests")? {
-        test_one(dir?)?;
+        let result = test_one(dir?)?;
+        duration += result.duration;
+        results.push(result);
     }
 
-    Ok(true)
+    Ok(TestResult {
+        results: Ok(results),
+        duration: duration,
+    })
 }
 
 fn get_file_path(
@@ -43,20 +50,28 @@ fn get_err_from_stderr(stderr: &str) -> Failure {
     return Failure::CmdTomlMissing;
 }
 
-fn test_one(entry: std::fs::DirEntry) -> anyhow::Result<bool> {
+fn test_one(entry: std::fs::DirEntry) -> anyhow::Result<SingleTestResult> {
+    let mut single_result = SingleTestResult {
+        id: format!("{:?}", entry.path()),
+        result: Ok(false),
+        duration: Duration::from_millis(0),
+    };
+
     let file_name = entry.file_name();
     let test_dir = match file_name.to_str() {
         Some(f) => f,
         None => {
             eprintln!("cant convert directory to str: {:?}", entry);
-            return Ok(false);
+            single_result.result = Ok(false);
+            return Ok(single_result);
         }
     };
 
     if !test_dir.starts_with('.') && entry.file_type()?.is_dir() {
         // Not testing fbt as of now
         if test_dir.contains("fbt") {
-            return Ok(false);
+            single_result.result = Ok(false);
+            return Ok(single_result);
         }
 
         println!("current folder {:?}", entry.path());
@@ -65,13 +80,15 @@ fn test_one(entry: std::fs::DirEntry) -> anyhow::Result<bool> {
                 if let Some(path) = res {
                     path
                 } else {
-                    eprintln!("not a valid test case");
-                    return Ok(false);
+                    eprintln!("not a valid test case, skipping test !!!");
+                    single_result.result = Ok(false);
+                    return Ok(single_result);
                 }
             }
             _ => {
-                eprintln!("not a valid test case");
-                return Ok(false);
+                eprintln!("not a valid test case, skipping test !!!");
+                single_result.result = Ok(false);
+                return Ok(single_result);
             }
         };
         let cmd_toml_path = match get_file_path(&entry, "cmd.toml", false) {
@@ -79,13 +96,15 @@ fn test_one(entry: std::fs::DirEntry) -> anyhow::Result<bool> {
                 if let Some(path) = res {
                     path
                 } else {
-                    eprintln!("not a valid test case");
-                    return Ok(false);
+                    eprintln!("not a valid test case, skipping test !!!");
+                    single_result.result = Ok(false);
+                    return Ok(single_result);
                 }
             }
             _ => {
-                eprintln!("not a valid test case");
-                return Ok(false);
+                eprintln!("not a valid test case, skipping test !!!");
+                single_result.result = Ok(false);
+                return Ok(single_result);
             }
         };
 
@@ -104,22 +123,21 @@ fn test_one(entry: std::fs::DirEntry) -> anyhow::Result<bool> {
         let cmd_result = cmd.output()?;
         let duration = start.elapsed();
         println!("cmd result {:?}", cmd_result);
-        let result = if String::from_utf8(cmd_result.stdout)? == test_cmd.stdout.trim()
+        if String::from_utf8(cmd_result.stdout)? == test_cmd.stdout.trim()
             && cmd_result.status.success()
         {
-            Ok(true)
+            single_result.result = Ok(true);
+            single_result.duration = duration;
         } else {
-            Err(vec1::vec1![get_err_from_stderr(
+            single_result.result = Err(vec1::vec1![get_err_from_stderr(
                 String::from_utf8(cmd_result.stderr)?.trim()
-            )])
+            )]);
+            single_result.duration = duration;
         };
-        let single_result = SingleTestResult {
-            id: format!("{:?}", entry.path()),
-            result: result,
-            duration: duration,
-        };
-        println!("{:?}", single_result);
-    }
 
-    Ok(true)
+        println!("{:?}", single_result);
+        Ok(single_result)
+    } else {
+        Ok(single_result)
+    }
 }
