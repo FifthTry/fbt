@@ -6,6 +6,7 @@ pub struct TestCommand {
     pub stdout: String,
 }
 
+#[derive(Debug)]
 pub struct TestResult {
     // only failure is test folder was not readable / found
     pub results: Result<Vec<SingleTestResult>, OverallFailure>,
@@ -22,6 +23,7 @@ pub struct SingleTestResult {
     pub duration: std::time::Duration,
 }
 
+#[derive(Debug)]
 pub enum OverallFailure {
     TestsFolderMissing,
     TestsFolderNotReadable(String),

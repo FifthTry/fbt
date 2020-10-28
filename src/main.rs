@@ -1,7 +1,6 @@
-use fbt_lib;
-
 fn main() {
-    if let Err(e) = fbt_lib::test_all() {
-        eprintln!("failed: {:?}", e)
+    match fbt_lib::test_all() {
+        Ok(res) => println!("Test Results {:?}", res),
+        Err(e) => eprintln!("failed: {:?}", e),
     }
 }
