@@ -1,4 +1,5 @@
 use crate::types::{Failure, SingleTestResult, TestResult};
+use colored::Colorize;
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
@@ -52,7 +53,7 @@ fn get_err_from_stderr(stderr: &str) -> Failure {
 
 fn test_one(entry: std::fs::DirEntry) -> anyhow::Result<SingleTestResult> {
     let mut single_result = SingleTestResult {
-        id: format!("{:?}", entry.path()),
+        id: format!("{:?}", entry.file_name()),
         result: Ok(false),
         duration: Duration::from_millis(0),
     };
@@ -112,7 +113,10 @@ fn test_one(entry: std::fs::DirEntry) -> anyhow::Result<SingleTestResult> {
 
         let contents = std::fs::read_to_string(cmd_toml_path)?;
         let test_cmd: crate::types::TestCommand = toml::from_str(&contents)?;
-        println!("Command: {:?}", test_cmd);
+        println!(
+            "{}",
+            format!("Command: {:?}", test_cmd).magenta().to_string()
+        );
 
         let args: Vec<&str> = test_cmd.cmd.split(' ').collect();
         let mut cmd = std::process::Command::new(args[0]);
@@ -134,8 +138,6 @@ fn test_one(entry: std::fs::DirEntry) -> anyhow::Result<SingleTestResult> {
             )]);
             single_result.duration = duration;
         };
-
-        println!("{:?}", single_result);
         Ok(single_result)
     } else {
         Ok(single_result)
