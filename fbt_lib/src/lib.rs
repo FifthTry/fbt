@@ -1,5 +1,4 @@
 use crate::types::{Failure, SingleTestResult, TestResult};
-use colored::Colorize;
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
@@ -113,10 +112,7 @@ fn test_one(entry: std::fs::DirEntry) -> anyhow::Result<SingleTestResult> {
 
         let contents = std::fs::read_to_string(cmd_toml_path)?;
         let test_cmd: crate::types::TestCommand = toml::from_str(&contents)?;
-        println!(
-            "{}",
-            format!("Command: {:?}", test_cmd).magenta().to_string()
-        );
+        println!("{}", format!("Command: {:?}", test_cmd));
 
         let args: Vec<&str> = test_cmd.cmd.split(' ').collect();
         let mut cmd = std::process::Command::new(args[0]);
