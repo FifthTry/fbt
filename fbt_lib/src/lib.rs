@@ -74,7 +74,6 @@ fn test_one(entry: std::fs::DirEntry) -> anyhow::Result<SingleTestResult> {
             return Ok(single_result);
         }
 
-        println!("current folder {:?}", entry.path());
         let input_path = match get_file_path(&entry, "input", true) {
             Ok(res) => {
                 if let Some(path) = res {
@@ -108,11 +107,8 @@ fn test_one(entry: std::fs::DirEntry) -> anyhow::Result<SingleTestResult> {
             }
         };
 
-        println!("input: {:?}, cmd.toml {:?}", input_path, cmd_toml_path);
-
         let contents = std::fs::read_to_string(cmd_toml_path)?;
         let test_cmd: crate::types::TestCommand = toml::from_str(&contents)?;
-        println!("{}", format!("Command: {:?}", test_cmd));
 
         let args: Vec<&str> = test_cmd.cmd.split(' ').collect();
         let mut cmd = std::process::Command::new(args[0]);
@@ -122,7 +118,6 @@ fn test_one(entry: std::fs::DirEntry) -> anyhow::Result<SingleTestResult> {
         let start = Instant::now();
         let cmd_result = cmd.output()?;
         let duration = start.elapsed();
-        println!("cmd result {:?}", cmd_result);
         if String::from_utf8(cmd_result.stdout)? == test_cmd.stdout.trim()
             && cmd_result.status.success()
         {

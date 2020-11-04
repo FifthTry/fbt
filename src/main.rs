@@ -17,14 +17,14 @@ fn main() {
                             println!(
                                 "Test: {}, Status: {}, Time: {}",
                                 id.blue().to_string(),
-                                "SKIPPED".magenta().to_string(),
+                                "SUCCESS".green().to_string(),
                                 format!("{:?}", &test.duration).yellow().to_string()
                             );
                         } else {
                             println!(
                                 "Test: {}, Status: {}, Time: {}",
                                 id.blue().to_string(),
-                                "SUCCESS".green().to_string(),
+                                "SKIPPED".magenta().to_string(),
                                 format!("{:?}", &test.duration).yellow().to_string()
                             );
                         }
