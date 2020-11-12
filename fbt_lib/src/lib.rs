@@ -1,10 +1,8 @@
-use crate::types::{Failure, SingleTestResult, TestResult};
-use std::path::PathBuf;
-use std::time::{Duration, Instant};
-
 pub mod types;
 
-pub fn test_all() -> anyhow::Result<TestResult> {
+use std::time::{Duration, Instant};
+
+pub fn test_all() -> anyhow::Result<types::TestResult> {
     let mut results = vec![];
     let mut duration = Duration::from_millis(0);
     for dir in std::fs::read_dir("./tests")? {
@@ -13,7 +11,7 @@ pub fn test_all() -> anyhow::Result<TestResult> {
         results.push(result);
     }
 
-    Ok(TestResult {
+    Ok(types::TestResult {
         results: Ok(results),
         duration: duration,
     })
@@ -23,7 +21,7 @@ fn get_file_path(
     curr_dir: &std::fs::DirEntry,
     file_obj: &str,
     is_dir: bool,
-) -> anyhow::Result<Option<PathBuf>> {
+) -> anyhow::Result<Option<std::path::PathBuf>> {
     for dir in std::fs::read_dir(curr_dir.path())? {
         let entry = dir?;
         if is_dir {
@@ -41,17 +39,17 @@ fn get_file_path(
     Ok(None)
 }
 
-fn get_err_from_stderr(stderr: &str) -> Failure {
+fn get_err_from_stderr(stderr: &str) -> types::Failure {
     if stderr.contains("No such file or directory") {
-        return Failure::ExpectedFileMissing {
+        return types::Failure::ExpectedFileMissing {
             expected: stderr.to_string(),
         };
     }
-    return Failure::CmdTomlMissing;
+    return types::Failure::CmdTomlMissing;
 }
 
-fn test_one(entry: std::fs::DirEntry) -> anyhow::Result<SingleTestResult> {
-    let mut single_result = SingleTestResult {
+fn test_one(entry: std::fs::DirEntry) -> anyhow::Result<types::SingleTestResult> {
+    let mut single_result = types::SingleTestResult {
         id: format!("{:?}", entry.file_name()),
         result: Ok(false),
         duration: Duration::from_millis(0),
@@ -108,7 +106,7 @@ fn test_one(entry: std::fs::DirEntry) -> anyhow::Result<SingleTestResult> {
         };
 
         let contents = std::fs::read_to_string(cmd_toml_path)?;
-        let test_cmd: crate::types::TestCommand = toml::from_str(&contents)?;
+        let test_cmd: types::TestCommand = toml::from_str(&contents)?;
 
         let args: Vec<&str> = test_cmd.cmd.split(' ').collect();
         let mut cmd = std::process::Command::new(args[0]);
