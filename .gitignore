@@ -18,3 +18,5 @@ test-runner/target
 venv
 target-nix
 __pycache__
+
+.zcompdump-*

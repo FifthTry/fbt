@@ -6,12 +6,14 @@ pub struct TestCommand {
     pub stdout: String,
 }
 
+#[derive(Debug)]
 pub struct TestResult {
     // only failure is test folder was not readable / found
     pub results: Result<Vec<SingleTestResult>, OverallFailure>,
     pub duration: std::time::Duration,
 }
 
+#[derive(Debug)]
 pub struct SingleTestResult {
     pub id: String, // 01_basic
     // if Ok(true) => test passed
@@ -21,11 +23,13 @@ pub struct SingleTestResult {
     pub duration: std::time::Duration,
 }
 
+#[derive(Debug)]
 pub enum OverallFailure {
     TestsFolderMissing,
     TestsFolderNotReadable(String),
 }
 
+#[derive(Debug)]
 pub enum Failure {
     CmdTomlMissing,
     CmdTomlInvalid {
