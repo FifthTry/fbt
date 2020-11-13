@@ -1,19 +1,18 @@
 pub mod types;
+pub use types::*;
 
-use std::time::{Duration, Instant};
-
-pub fn test_all() -> anyhow::Result<types::TestResult> {
+pub fn test_all() -> anyhow::Result<TestResult> {
     let mut results = vec![];
-    let mut duration = Duration::from_millis(0);
+    let mut duration = std::time::Duration::from_millis(0);
     for dir in std::fs::read_dir("./tests")? {
         let result = test_one(dir?)?;
         duration += result.duration;
         results.push(result);
     }
 
-    Ok(types::TestResult {
+    Ok(TestResult {
         results: Ok(results),
-        duration: duration,
+        duration,
     })
 }
 
@@ -50,9 +49,13 @@ fn get_err_from_stderr(stderr: &str) -> types::Failure {
 
 fn test_one(entry: std::fs::DirEntry) -> anyhow::Result<types::SingleTestResult> {
     let mut single_result = types::SingleTestResult {
-        id: format!("{:?}", entry.file_name()),
+        id: entry
+            .file_name()
+            .to_str()
+            .map(ToString::to_string)
+            .unwrap_or_else(|| format!("{:?}", entry.file_name())),
         result: Ok(false),
-        duration: Duration::from_millis(0),
+        duration: std::time::Duration::from_millis(0),
     };
 
     let file_name = entry.file_name();
@@ -113,7 +116,7 @@ fn test_one(entry: std::fs::DirEntry) -> anyhow::Result<types::SingleTestResult>
         cmd.current_dir(input_path);
         //will need to add code to handle multiple args
         cmd.arg(args[1]);
-        let start = Instant::now();
+        let start = std::time::Instant::now();
         let cmd_result = cmd.output()?;
         let duration = start.elapsed();
         if String::from_utf8(cmd_result.stdout)? == test_cmd.stdout.trim()

@@ -1,43 +1,40 @@
 use colored::Colorize;
-use fbt_lib::types::SingleTestResult;
 
 fn main() {
     let test_result = match fbt_lib::test_all() {
         Ok(tr) => tr,
         Err(e) => return eprintln!("failed: {:?}", e),
     };
-    let mut single_results: Vec<SingleTestResult> = vec![];
-    match test_result.results {
-        Ok(result) => single_results = result,
-        _ => {}
-    }
+    let results = match test_result.results {
+        Ok(r) => r,
+        Err(fbt_lib::OverallFailure::TestsFolderMissing) => {
+            return eprintln!("test folder missing");
+        }
+        Err(fbt_lib::OverallFailure::TestsFolderNotReadable(m)) => {
+            return eprintln!("test folder not readable: {}", m);
+        }
+    };
 
-    for test in single_results.iter() {
-        let id = test.id.clone();
-        match &test.result {
+    for result in results.iter() {
+        match &result.result {
             Ok(status) => {
                 if *status {
                     println!(
-                        "Test: {}, Status: {}, Time: {}",
-                        id.blue().to_string(),
-                        "SUCCESS".green().to_string(),
-                        format!("{:?}", &test.duration).yellow().to_string()
+                        "{}: {} in {}",
+                        result.id.blue(),
+                        "PASSED".green(),
+                        format!("{:?}", &result.duration).yellow()
                     );
                 } else {
-                    println!(
-                        "Test: {}, Status: {}, Time: {}",
-                        id.blue().to_string(),
-                        "SKIPPED".magenta().to_string(),
-                        format!("{:?}", &test.duration).yellow().to_string()
-                    );
+                    println!("{}: {}", result.id.blue(), "SKIPPED".magenta(),);
                 }
             }
             Err(_e) => {
                 println!(
-                    "Test: {}, Status: {}, Time: {}",
-                    id.blue().to_string(),
-                    "FAILED".red().to_string(),
-                    format!("{:?}", &test.duration).yellow().to_string()
+                    "{}: {} in {}",
+                    result.id.blue(),
+                    "FAILED".red(),
+                    format!("{:?}", &result.duration).yellow()
                 );
             }
         }
