@@ -5,7 +5,6 @@ authors = ["Sitesh <siteshpattanaik001@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-anyhow = "1"
 vec1 = "1"
 colored = "2"
 ftd = "0.1.0"
