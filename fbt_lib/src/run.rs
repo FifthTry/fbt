@@ -36,6 +36,9 @@ pub fn test_all() -> Result<Vec<crate::Case>, crate::Error> {
 }
 
 fn test_one(entry: std::path::PathBuf) -> crate::Case {
+    use std::borrow::BorrowMut;
+    use std::io::Write;
+
     let id = entry
         .file_name()
         .map(|v| v.to_str())
@@ -70,6 +73,83 @@ fn test_one(entry: std::path::PathBuf) -> crate::Case {
         }
         Err(e) => return err(crate::Failure::CantReadCmdFile { error: e }),
     };
+
+    let fbt = std::env::temp_dir().join("fbt");
+    if fbt.exists() {
+        if let Err(e) = std::fs::remove_dir_all(&fbt) {
+            return err(crate::Failure::Other { io: e });
+        }
+    }
+
+    let input = entry.join("input");
+
+    // if input folder exists, we copy it into tmp and run our command from
+    // inside that folder, else we run it from tmp
+    let dir = if input.exists() {
+        let dir = fbt.join("input");
+        if !dir.is_dir() {
+            return err(crate::Failure::InputIsNotDir);
+        }
+        if let Err(e) = crate::copy_dir::copy_dir_all(&dir, &fbt) {
+            return err(crate::Failure::Other { io: e });
+        }
+        dir
+    } else {
+        fbt
+    };
+
+    let mut child = match config.cmd().current_dir(dir).spawn() {
+        Ok(c) => c,
+        Err(e) => {
+            return err(crate::Failure::CommandFailed { io: e });
+        }
+    };
+
+    if let (Some(ref stdin), Some(cstdin)) = (config.stdin, &mut child.stdin) {
+        if let Err(e) = cstdin.borrow_mut().write_all(stdin.as_bytes()) {
+            return err(crate::Failure::CommandFailed { io: e });
+        }
+    }
+
+    let output = match child.wait_with_output() {
+        Ok(o) => o,
+        Err(e) => return err(crate::Failure::CommandFailed { io: e }),
+    };
+
+    match output.status.code() {
+        Some(code) => {
+            if code != config.code {
+                return err(crate::Failure::UnexpectedStatusCode {
+                    expected: config.code,
+                    output,
+                });
+            }
+        }
+        None => {
+            return err(crate::Failure::UnexpectedStatusCode {
+                expected: config.code,
+                output,
+            })
+        }
+    }
+
+    if let Some(ref stdout) = config.stdout {
+        if output.stdout != stdout.as_bytes() {
+            return err(crate::Failure::StdoutMismatch {
+                output,
+                expected: stdout.clone(),
+            });
+        }
+    }
+
+    if let Some(ref stderr) = config.stderr {
+        if output.stdout != stderr.as_bytes() {
+            return err(crate::Failure::StdoutMismatch {
+                output,
+                expected: stderr.clone(),
+            });
+        }
+    }
 
     todo!()
 }
