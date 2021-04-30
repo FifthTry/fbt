@@ -31,6 +31,11 @@ pub enum DirDiff {
     UnexpectedFolderFound {
         found: String,
     },
+    FileTypeMismatch {
+        file: String,
+        expected: String,
+        found: String,
+    },
     ContentMismatch {
         file: String,
         expected: String,
@@ -45,21 +50,56 @@ pub fn diff<A: AsRef<Path>, B: AsRef<Path>>(
     let mut a_walker = walk_dir(a_base)?;
     let mut b_walker = walk_dir(b_base)?;
 
-    for (a, b) in (&mut a_walker).zip(&mut b_walker) {
-        let a = a?;
-        let b = b?;
+    let mut diff = vec![];
 
-        if a.depth() != b.depth()
-            || a.file_type() != b.file_type()
-            || a.file_name() != b.file_name()
-            || (a.file_type().is_file() && read_to_vec(a.path())? != read_to_vec(b.path())?)
-        {
-            return Ok(true);
+    loop {
+        match (a_walker.next(), b_walker.next()) {
+            (Some(a), Some(b)) => {
+                // first lets check the depth:
+                // a > b: UnexpectedFileFound or UnexpectedFolderFound else
+                // b > a: ExpectedFileMissing or ExpectedFolderMissing
+
+                // if file names dont match how to find if we got a new entry
+                // on left or extra entry on right? how do people actually
+                // calculate diff?
+
+                // then check file type
+
+                // finally check file content if its a file
+                todo!()
+            }
+            (None, Some(b)) => {
+                // we have something in b, but a is done, lets iterate over all
+                // entries in b, and put them in UnexpectedFileFound and
+                // UnexpectedFolderFound
+                todo!()
+            }
+            (Some(a), None) => {
+                // we have something in a, but b is done, lets iterate over all
+                // entries in a, and put them in ExpectedFileMissing and
+                // ExpectedFolderMissing
+                todo!()
+            }
+            (None, None) => break,
         }
     }
 
-    todo!()
-    // Ok(a_walker.next().is_some() || b_walker.next().is_some())
+    // for (a, b) in (&mut a_walker).zip(&mut b_walker) {
+    //     let a = a?;
+    //     let b = b?;
+    //
+    //     a_walker.next();
+    //
+    //     if a.depth() != b.depth()
+    //         || a.file_type() != b.file_type()
+    //         || a.file_name() != b.file_name()
+    //         || (a.file_type().is_file() && read_to_vec(a.path())? != read_to_vec(b.path())?)
+    //     {
+    //         // return Ok(true);
+    //     }
+    // }
+
+    Ok(diff)
 }
 
 fn walk_dir<P: AsRef<Path>>(path: P) -> Result<walkdir::IntoIter, std::io::Error> {
@@ -71,8 +111,8 @@ fn walk_dir<P: AsRef<Path>>(path: P) -> Result<walkdir::IntoIter, std::io::Error
     }
 }
 
-fn compare_by_file_name(a: &std::io::DirEntry, b: &std::io::DirEntry) -> Ordering {
-    a.file_name().cmp(b.file_name())
+fn compare_by_file_name(a: &DirEntry, b: &DirEntry) -> Ordering {
+    a.file_name().cmp(&b.file_name())
 }
 
 fn read_to_vec<P: AsRef<Path>>(file: P) -> Result<Vec<u8>, std::io::Error> {

@@ -47,8 +47,9 @@ fn test_one(entry: std::path::PathBuf) -> crate::Case {
         .unwrap_or_else(|| format!("{:?}", entry.file_name()));
 
     let start = std::time::Instant::now();
+    let id_ = id.as_str();
     let err = |e: crate::Failure| crate::Case {
-        id: id.clone(),
+        id: id_.to_string(),
         result: Err(vec1::Vec1::new(e)),
         duration: std::time::Instant::now().duration_since(start),
     };
@@ -172,7 +173,7 @@ fn test_one(entry: std::path::PathBuf) -> crate::Case {
     };
 
     return crate::Case {
-        id,
+        id: id.clone(),
         result: match crate::dir_diff::diff(output, reference) {
             Ok(diff) => {
                 if diff.is_empty() {
