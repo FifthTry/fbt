@@ -1,8 +1,0 @@
-doit==0.32.0
-ipython
-jupyterlab
-ipython-sql
-flake8
-black
-pip-tools
-pre-commit==1.10
