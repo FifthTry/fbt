@@ -98,7 +98,7 @@ fn test_one(entry: std::path::PathBuf) -> crate::Case {
         fbt
     };
 
-    let mut child = match config.cmd().current_dir(dir).spawn() {
+    let mut child = match config.cmd().current_dir(&dir).spawn() {
         Ok(c) => c,
         Err(e) => {
             return err(crate::Failure::CommandFailed { io: e });
@@ -151,5 +151,38 @@ fn test_one(entry: std::path::PathBuf) -> crate::Case {
         }
     }
 
-    todo!()
+    // if there is `output` folder we will check if `dir` is equal to `output`.
+    // if `config` has a `output key` set, then instead of the entire `dir`, we
+    // will check for the folder named `output key`, which is resolved with
+    // respect to `dir`
+
+    let reference = entry.join("output");
+
+    if !reference.exists() {
+        return crate::Case {
+            id,
+            result: Ok(true),
+            duration: std::time::Instant::now().duration_since(start),
+        };
+    }
+
+    let output = match config.output {
+        Some(v) => dir.join(v),
+        None => dir,
+    };
+
+    return crate::Case {
+        id,
+        result: match crate::dir_diff::diff(output, reference) {
+            Ok(diff) => {
+                if diff.is_empty() {
+                    Ok(true)
+                } else {
+                    return err(crate::Failure::OutputMismatch { diff });
+                }
+            }
+            Err(e) => return err(crate::Failure::DirDiffError { error: e }),
+        },
+        duration: std::time::Instant::now().duration_since(start),
+    };
 }

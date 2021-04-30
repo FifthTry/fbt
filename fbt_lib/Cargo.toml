@@ -6,5 +6,5 @@ edition = "2018"
 
 [dependencies]
 vec1 = "1"
-colored = "2"
 ftd = "0.1.0"
+walkdir = "2"

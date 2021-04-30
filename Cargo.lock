@@ -497,9 +497,9 @@ dependencies = [
 name = "fbt_lib"
 version = "0.1.0"
 dependencies = [
- "colored 2.0.0",
  "ftd",
  "vec1",
+ "walkdir 2.3.2",
 ]
 
 [[package]]

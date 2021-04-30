@@ -3,6 +3,7 @@ pub struct TestConfig {
     cmd: String,
     env: Option<std::collections::HashMap<String, String>>,
     clear_env: bool,
+    pub output: Option<String>,
     pub stdin: Option<String>,
     pub code: i32,
     pub stdout: Option<String>,
@@ -59,6 +60,7 @@ impl TestConfig {
                     stderr: None,
                     env: None,
                     clear_env: p1.header.bool_with_default("clear-env", false)?,
+                    output: p1.header.string_optional("output")?,
                 }
             }
             None => {
@@ -185,21 +187,10 @@ pub enum Failure {
         expected: String,
         output: std::process::Output,
     },
-    ExpectedFileMissing {
-        expected: String,
+    DirDiffError {
+        error: crate::DirDiffError,
     },
-    ExpectedFolderMissing {
-        expected: String,
-    },
-    UnexpectedFileFound {
-        found: String,
-    },
-    UnexpectedFolderFound {
-        found: String,
-    },
-    ContentMismatch {
-        file: String,
-        expected: String,
-        found: String,
+    OutputMismatch {
+        diff: Vec<crate::DirDiff>,
     },
 }
