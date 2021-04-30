@@ -1,6 +1,4 @@
-use serde::Deserialize;
-
-#[derive(Deserialize, Debug)]
+#[derive(Debug)]
 pub struct TestCommand {
     pub cmd: String,
     pub stdout: String,
@@ -8,7 +6,7 @@ pub struct TestCommand {
 
 #[derive(Debug)]
 pub struct TestResult {
-    // only failure is test folder was not readable / found
+    // only failure is tests folder was not readable / found
     pub results: Result<Vec<SingleTestResult>, OverallFailure>,
     pub duration: std::time::Duration,
 }
@@ -26,7 +24,7 @@ pub struct SingleTestResult {
 #[derive(Debug)]
 pub enum OverallFailure {
     TestsFolderMissing,
-    TestsFolderNotReadable(String),
+    TestsFolderNotReadable(std::io::Error),
 }
 
 #[derive(Debug)]

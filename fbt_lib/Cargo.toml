@@ -4,11 +4,8 @@ version = "0.1.0"
 authors = ["Sitesh <siteshpattanaik001@gmail.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 anyhow = "1"
-serde = { version = "1", features = ["derive"] }
-toml = "0"
 vec1 = "1"
 colored = "2"
+ftd = "0.1.0"
