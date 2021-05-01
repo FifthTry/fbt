@@ -175,13 +175,10 @@ fn test_one(entry: std::path::PathBuf) -> crate::Case {
     return crate::Case {
         id: id.clone(),
         result: match crate::dir_diff::diff(output, reference) {
-            Ok(diff) => {
-                if diff.is_empty() {
-                    Ok(true)
-                } else {
-                    return err(crate::Failure::OutputMismatch { diff });
-                }
+            Ok(Some(diff)) => {
+                return err(crate::Failure::OutputMismatch { diff });
             }
+            Ok(None) => Ok(true),
             Err(e) => return err(crate::Failure::DirDiffError { error: e }),
         },
         duration: std::time::Instant::now().duration_since(start),

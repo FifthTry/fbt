@@ -191,6 +191,6 @@ pub enum Failure {
         error: crate::DirDiffError,
     },
     OutputMismatch {
-        diff: Vec<crate::DirDiff>,
+        diff: crate::DirDiff,
     },
 }
