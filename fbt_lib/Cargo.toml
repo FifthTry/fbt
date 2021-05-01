@@ -1,10 +1,10 @@
 [package]
 name = "fbt-lib"
 version = "0.1.0"
-authors = ["Sitesh <siteshpattanaik001@gmail.com>"]
+authors = ["Sitesh <siteshpattanaik001@gmail.com>", "Amit Upadhyay <upadhyay@gmail.com>"]
 edition = "2018"
-description = "folder based testing tool"
-license = "BSD"
+description = "folder based testing tool (library)"
+license = "BSD-2-Clause"
 homepage = "https://www.fifthtry.com/fifthtry/fbt/"
 
 [dependencies]
