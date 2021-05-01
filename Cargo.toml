@@ -8,5 +8,5 @@ edition = "2018"
 members = ["fbt_lib"]
 
 [dependencies]
-fbt_lib = { path = "fbt_lib" }
+fbt-lib = { path = "fbt_lib" }
 colored = "2"

@@ -490,11 +490,11 @@ name = "fbt"
 version = "0.1.0"
 dependencies = [
  "colored 2.0.0",
- "fbt_lib",
+ "fbt-lib",
 ]
 
 [[package]]
-name = "fbt_lib"
+name = "fbt-lib"
 version = "0.1.0"
 dependencies = [
  "ftd",
