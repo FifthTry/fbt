@@ -1,40 +1,39 @@
 use colored::Colorize;
 
 fn main() {
-    let test_result = match fbt_lib::test_all() {
+    let cases = match fbt_lib::test_all() {
         Ok(tr) => tr,
-        Err(e) => return eprintln!("failed: {:?}", e),
-    };
-    let results = match test_result.results {
-        Ok(r) => r,
-        Err(fbt_lib::OverallFailure::TestsFolderMissing) => {
-            return eprintln!("test folder missing");
+        Err(fbt_lib::Error::TestsFolderMissing) => {
+            eprintln!("{}", "Tests folder is missing".red());
+            std::process::exit(1);
         }
-        Err(fbt_lib::OverallFailure::TestsFolderNotReadable(m)) => {
-            return eprintln!("test folder not readable: {}", m);
+        Err(fbt_lib::Error::TestsFolderNotReadable(e)) => {
+            eprintln!("{}", format!("Tests folder is unreadable: {:?}", e).red());
+            std::process::exit(1);
         }
     };
 
-    for result in results.iter() {
-        match &result.result {
+    for case in cases.iter() {
+        match &case.result {
             Ok(status) => {
                 if *status {
                     println!(
                         "{}: {} in {}",
-                        result.id.blue(),
+                        case.id.blue(),
                         "PASSED".green(),
-                        format!("{:?}", &result.duration).yellow()
+                        format!("{:?}", &case.duration).yellow()
                     );
                 } else {
-                    println!("{}: {}", result.id.blue(), "SKIPPED".magenta(),);
+                    println!("{}: {}", case.id.blue(), "SKIPPED".magenta(),);
                 }
             }
-            Err(_e) => {
+            Err(e) => {
                 println!(
-                    "{}: {} in {}",
-                    result.id.blue(),
+                    "{}: {} in {} ({:?})",
+                    case.id.blue(),
                     "FAILED".red(),
-                    format!("{:?}", &result.duration).yellow()
+                    format!("{:?}", &case.duration).yellow(),
+                    e
                 );
             }
         }
