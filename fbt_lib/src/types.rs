@@ -45,16 +45,16 @@ impl TestConfig {
         let mut iter = parsed.iter();
         let mut c = match iter.next() {
             Some(p1) => {
-                if p1.name != "ftd" {
+                if p1.name != "fbt" {
                     return Err(ftd::p1::Error::InvalidInput {
-                        message: "first section's name is not 'ftd'".to_string(),
+                        message: "first section's name is not 'fbt'".to_string(),
                         context: p1.name.clone(),
                     });
                 }
 
                 TestConfig {
                     cmd: p1.header.string("cmd")?,
-                    code: p1.header.i32("code")?,
+                    code: p1.header.i32_with_default("code", 0)?,
                     stdin: None,
                     stdout: None,
                     stderr: None,
@@ -148,14 +148,13 @@ pub struct Case {
     // if Ok(true) => test passed
     // if Ok(false) => test skipped
     // if Err(Failure) => test failed
-    pub result: Result<bool, vec1::Vec1<crate::Failure>>,
+    pub result: Result<bool, crate::Failure>,
     pub duration: std::time::Duration,
 }
 
 #[derive(Debug)]
 pub enum Error {
     TestsFolderMissing,
-    CantReadCWD(std::io::Error),
     TestsFolderNotReadable(std::io::Error),
 }
 

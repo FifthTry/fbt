@@ -498,7 +498,6 @@ name = "fbt_lib"
 version = "0.1.0"
 dependencies = [
  "ftd",
- "vec1",
  "walkdir 2.3.2",
 ]
 
@@ -1511,12 +1510,6 @@ dependencies = [
  "getrandom",
  "serde",
 ]
-
-[[package]]
-name = "vec1"
-version = "1.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f2fffd117bafd8d50c625cce64efde70f416ce6d38f78104035a0913cf15fe97"
 
 [[package]]
 name = "vec_map"

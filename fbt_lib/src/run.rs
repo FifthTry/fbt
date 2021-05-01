@@ -50,13 +50,12 @@ fn test_one(entry: std::path::PathBuf) -> crate::Case {
     let id_ = id.as_str();
     let err = |e: crate::Failure| crate::Case {
         id: id_.to_string(),
-        result: Err(vec1::Vec1::new(e)),
+        result: Err(e),
         duration: std::time::Instant::now().duration_since(start),
     };
 
     // Not testing fbt as of now
     if id.contains("fbt") {
-        eprintln!("not testing fbt as of now");
         return crate::Case {
             id,
             result: Ok(false),
@@ -88,10 +87,10 @@ fn test_one(entry: std::path::PathBuf) -> crate::Case {
     // inside that folder, else we run it from tmp
     let dir = if input.exists() {
         let dir = fbt.join("input");
-        if !dir.is_dir() {
+        if !input.is_dir() {
             return err(crate::Failure::InputIsNotDir);
         }
-        if let Err(e) = crate::copy_dir::copy_dir_all(&dir, &fbt) {
+        if let Err(e) = crate::copy_dir::copy_dir_all(&input, &dir) {
             return err(crate::Failure::Other { io: e });
         }
         dir
@@ -135,7 +134,7 @@ fn test_one(entry: std::path::PathBuf) -> crate::Case {
     }
 
     if let Some(ref stdout) = config.stdout {
-        if output.stdout != stdout.as_bytes() {
+        if std::str::from_utf8(&output.stdout).unwrap_or("").trim() != stdout {
             return err(crate::Failure::StdoutMismatch {
                 output,
                 expected: stdout.clone(),
@@ -144,8 +143,8 @@ fn test_one(entry: std::path::PathBuf) -> crate::Case {
     }
 
     if let Some(ref stderr) = config.stderr {
-        if output.stdout != stderr.as_bytes() {
-            return err(crate::Failure::StdoutMismatch {
+        if std::str::from_utf8(&output.stderr).unwrap_or("").trim() != stderr {
+            return err(crate::Failure::StderrMismatch {
                 output,
                 expected: stderr.clone(),
             });

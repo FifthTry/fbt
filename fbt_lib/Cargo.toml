@@ -5,6 +5,5 @@ authors = ["Sitesh <siteshpattanaik001@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-vec1 = "1"
 ftd = "0.1.0"
 walkdir = "2"

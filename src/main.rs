@@ -1,42 +1,41 @@
-// use colored::Colorize;
-//
-fn main() {}
-//     let test_result = match fbt_lib::test_all() {
-//         Ok(tr) => tr,
-//         Err(e) => return eprintln!("failed: {:?}", e),
-//     };
-//     let results = match test_result.results {
-//         Ok(r) => r,
-//         Err(fbt_lib::OverallFailure::TestsFolderMissing) => {
-//             return eprintln!("test folder missing");
-//         }
-//         Err(fbt_lib::OverallFailure::TestsFolderNotReadable(m)) => {
-//             return eprintln!("test folder not readable: {}", m);
-//         }
-//     };
-//
-//     for result in results.iter() {
-//         match &result.result {
-//             Ok(status) => {
-//                 if *status {
-//                     println!(
-//                         "{}: {} in {}",
-//                         result.id.blue(),
-//                         "PASSED".green(),
-//                         format!("{:?}", &result.duration).yellow()
-//                     );
-//                 } else {
-//                     println!("{}: {}", result.id.blue(), "SKIPPED".magenta(),);
-//                 }
-//             }
-//             Err(_e) => {
-//                 println!(
-//                     "{}: {} in {}",
-//                     result.id.blue(),
-//                     "FAILED".red(),
-//                     format!("{:?}", &result.duration).yellow()
-//                 );
-//             }
-//         }
-//     }
-// }
+use colored::Colorize;
+
+fn main() {
+    let cases = match fbt_lib::test_all() {
+        Ok(tr) => tr,
+        Err(fbt_lib::Error::TestsFolderMissing) => {
+            eprintln!("{}", "Tests folder is missing".red());
+            std::process::exit(1);
+        }
+        Err(fbt_lib::Error::TestsFolderNotReadable(e)) => {
+            eprintln!("{}", format!("Tests folder is unreadable: {:?}", e).red());
+            std::process::exit(1);
+        }
+    };
+
+    for case in cases.iter() {
+        match &case.result {
+            Ok(status) => {
+                if *status {
+                    println!(
+                        "{}: {} in {}",
+                        case.id.blue(),
+                        "PASSED".green(),
+                        format!("{:?}", &case.duration).yellow()
+                    );
+                } else {
+                    println!("{}: {}", case.id.blue(), "SKIPPED".magenta(),);
+                }
+            }
+            Err(e) => {
+                println!(
+                    "{}: {} in {} ({:?})",
+                    case.id.blue(),
+                    "FAILED".red(),
+                    format!("{:?}", &case.duration).yellow(),
+                    e
+                );
+            }
+        }
+    }
+}
