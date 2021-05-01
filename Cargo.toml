@@ -11,5 +11,5 @@ homepage = "https://www.fifthtry.com/fifthtry/fbt/"
 members = ["fbt_lib"]
 
 [dependencies]
-fbt-lib = { path = "fbt_lib" }
+fbt-lib = { version = "0.1.0" }
 colored = "2"
