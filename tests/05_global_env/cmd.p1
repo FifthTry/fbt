@@ -1,5 +1,4 @@
 -- fbt:
-cmd: echo $FOO
 
 -- stdout:
 

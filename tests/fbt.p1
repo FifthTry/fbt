@@ -1,4 +1,5 @@
 -- fbt:
+cmd: echo $FOO
 
 -- env:
 
