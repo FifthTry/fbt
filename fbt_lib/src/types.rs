@@ -1,3 +1,91 @@
+#[derive(Debug, Default)]
+pub struct Config {
+    cmd: Option<String>,
+    env: Option<std::collections::HashMap<String, String>>,
+    clear_env: bool,
+    output: Option<String>,
+    exit_code: Option<i32>,
+}
+
+impl Config {
+    pub fn parse(s: &str) -> ftd::p1::Result<Self> {
+        let parsed = ftd::p1::parse(s)?;
+        let mut iter = parsed.iter();
+        let mut c = match iter.next() {
+            Some(p1) => {
+                if p1.name != "fbt" {
+                    return Err(ftd::p1::Error::InvalidInput {
+                        message: "first section's name is not 'fbt'".to_string(),
+                        context: p1.name.clone(),
+                    });
+                }
+
+                Config {
+                    cmd: p1.header.string_optional("cmd")?,
+                    exit_code: p1.header.i32_optional("exit-code")?,
+                    env: None,
+                    clear_env: p1.header.bool_with_default("clear-env", false)?,
+                    output: p1.header.string_optional("output")?,
+                }
+            }
+            None => {
+                return Err(ftd::p1::Error::InvalidInput {
+                    message: "no sections found".to_string(),
+                    context: s.to_string(),
+                });
+            }
+        };
+
+        for s in iter {
+            match s.name.as_str() {
+                "env" => {
+                    if c.env.is_some() {
+                        return Err(ftd::p1::Error::InvalidInput {
+                            message: "env provided more than once".to_string(),
+                            context: s.to_string(),
+                        });
+                    }
+                    c.env = read_env(&s.body)?;
+                }
+                _ => {
+                    return Err(ftd::p1::Error::InvalidInput {
+                        message: "unknown section".to_string(),
+                        context: s.name.clone(),
+                    });
+                }
+            }
+        }
+
+        Ok(c)
+    }
+}
+
+fn read_env(
+    body: &Option<String>,
+) -> ftd::p1::Result<Option<std::collections::HashMap<String, String>>> {
+    Ok(match body {
+        Some(ref v) => {
+            let mut m = std::collections::HashMap::new();
+            for line in v.split('\n') {
+                let mut parts = line.splitn(2, "=");
+                match (parts.next(), parts.next()) {
+                    (Some(k), Some(v)) => {
+                        m.insert(k.to_string(), v.to_string());
+                    }
+                    _ => {
+                        return Err(ftd::p1::Error::InvalidInput {
+                            message: "invalid line in env".to_string(),
+                            context: line.to_string(),
+                        });
+                    }
+                }
+            }
+            Some(m)
+        }
+        None => None,
+    })
+}
+
 #[derive(Debug)]
 pub struct TestConfig {
     cmd: String,
@@ -5,7 +93,7 @@ pub struct TestConfig {
     clear_env: bool,
     pub output: Option<String>,
     pub stdin: Option<String>,
-    pub code: i32,
+    pub exit_code: i32,
     pub stdout: Option<String>,
     pub stderr: Option<String>,
 }
@@ -40,7 +128,7 @@ impl TestConfig {
         cmd
     }
 
-    pub fn parse(s: &str) -> ftd::p1::Result<Self> {
+    pub fn parse(s: &str, config: &Config) -> ftd::p1::Result<Self> {
         let parsed = ftd::p1::parse(s)?;
         let mut iter = parsed.iter();
         let mut c = match iter.next() {
@@ -53,14 +141,29 @@ impl TestConfig {
                 }
 
                 TestConfig {
-                    cmd: p1.header.string("cmd")?,
-                    code: p1.header.i32_with_default("code", 0)?,
+                    cmd: match p1.header.string_optional("cmd")?.or(config.cmd.clone()) {
+                        Some(v) => v,
+                        None => {
+                            return Err(ftd::p1::Error::InvalidInput {
+                                message: "cmd not found".to_string(),
+                                context: s.to_string(),
+                            })
+                        }
+                    },
+                    exit_code: p1
+                        .header
+                        .i32_optional("exit-code")?
+                        .or(config.exit_code)
+                        .unwrap_or(0),
                     stdin: None,
                     stdout: None,
                     stderr: None,
-                    env: None,
-                    clear_env: p1.header.bool_with_default("clear-env", false)?,
-                    output: p1.header.string_optional("output")?,
+                    env: config.env.clone(),
+                    clear_env: p1.header.bool_with_default("clear-env", config.clear_env)?,
+                    output: p1
+                        .header
+                        .string_optional("output")?
+                        .or(config.output.clone()),
                 }
             }
             None => {
@@ -101,32 +204,14 @@ impl TestConfig {
                     c.stderr = s.body.clone();
                 }
                 "env" => {
-                    if c.env.is_some() {
-                        return Err(ftd::p1::Error::InvalidInput {
-                            message: "env provided more than once".to_string(),
-                            context: s.to_string(),
-                        });
-                    }
-                    c.env = match s.body {
-                        Some(ref v) => {
-                            let mut m = std::collections::HashMap::new();
-                            for line in v.split('\n') {
-                                let mut parts = line.splitn(1, '=');
-                                match (parts.next(), parts.next()) {
-                                    (Some(k), Some(v)) => {
-                                        m.insert(k.to_string(), v.to_string());
-                                    }
-                                    _ => {
-                                        return Err(ftd::p1::Error::InvalidInput {
-                                            message: "invalid line in env".to_string(),
-                                            context: line.to_string(),
-                                        })
-                                    }
-                                }
-                            }
-                            Some(m)
+                    c.env = match (read_env(&s.body)?, &c.env) {
+                        (Some(v), Some(e)) => {
+                            let mut e = e.clone();
+                            e.extend(v.into_iter());
+                            Some(e)
                         }
-                        None => None,
+                        (Some(v), None) => Some(v),
+                        (None, v) => v.clone(),
                     };
                 }
                 _ => {
@@ -155,6 +240,8 @@ pub struct Case {
 #[derive(Debug)]
 pub enum Error {
     TestsFolderMissing,
+    CantReadConfig(std::io::Error),
+    InvalidConfig(ftd::p1::Error),
     TestsFolderNotReadable(std::io::Error),
 }
 
@@ -173,6 +260,7 @@ pub enum Failure {
     },
     CommandFailed {
         io: std::io::Error,
+        reason: &'static str,
     },
     UnexpectedStatusCode {
         expected: i32,
