@@ -1,26 +1,26 @@
 pub fn test_all() -> Result<Vec<crate::Case>, crate::Error> {
     let mut results = vec![];
 
-    for dir in match std::fs::read_dir("./tests") {
-        Ok(dir) => dir,
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-            return Err(crate::Error::TestsFolderMissing)
-        }
-        Err(e) => return Err(crate::Error::TestsFolderNotReadable(e)),
-    } {
-        results.push(test_one(match dir {
-            Ok(d) => {
-                let d = d.path();
-                if d.file_name()
-                    .map(|v| v.to_str())
-                    .unwrap_or(None)
-                    .unwrap_or("")
-                    .starts_with(".")
-                {
-                    continue;
-                }
-                d
+    let config = match std::fs::read_to_string("./tests/ftd.p1") {
+        Ok(v) => match crate::Config::parse(v.as_str()) {
+            Ok(c) => c,
+            Err(e) => return Err(crate::Error::InvalidConfig(e)),
+        },
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => crate::Config::default(),
+        Err(e) => return Err(crate::Error::CantReadConfig(e)),
+    };
+
+    for dir in {
+        match std::fs::read_dir("./tests") {
+            Ok(dir) => dir,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                return Err(crate::Error::TestsFolderMissing)
             }
+            Err(e) => return Err(crate::Error::TestsFolderNotReadable(e)),
+        }
+    } {
+        let dir = match dir {
+            Ok(d) => d.path(),
             Err(e) => {
                 // TODO: What is going on here? returning TestsFolderNotReadable
                 //  is not great because we are losing the existing results, and
@@ -29,13 +29,29 @@ pub fn test_all() -> Result<Vec<crate::Case>, crate::Error> {
                 //  know the name of this entry?
                 return Err(crate::Error::TestsFolderNotReadable(e));
             }
-        }));
+        };
+
+        if !dir.is_dir() {
+            continue;
+        }
+
+        if dir
+            .file_name()
+            .map(|v| v.to_str())
+            .unwrap_or(None)
+            .unwrap_or("")
+            .starts_with(".")
+        {
+            continue;
+        }
+
+        results.push(test_one(&config, dir));
     }
 
     Ok(results)
 }
 
-fn test_one(entry: std::path::PathBuf) -> crate::Case {
+fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
     use std::borrow::BorrowMut;
     use std::io::Write;
 
@@ -64,7 +80,7 @@ fn test_one(entry: std::path::PathBuf) -> crate::Case {
     }
 
     let config = match std::fs::read_to_string(entry.join("cmd.p1")) {
-        Ok(c) => match crate::TestConfig::parse(c.as_str()) {
+        Ok(c) => match crate::TestConfig::parse(c.as_str(), global) {
             Ok(c) => c,
             Err(e) => return err(crate::Failure::CmdFileInvalid { error: e }),
         },
@@ -118,16 +134,16 @@ fn test_one(entry: std::path::PathBuf) -> crate::Case {
 
     match output.status.code() {
         Some(code) => {
-            if code != config.code {
+            if code != config.exit_code {
                 return err(crate::Failure::UnexpectedStatusCode {
-                    expected: config.code,
+                    expected: config.exit_code,
                     output,
                 });
             }
         }
         None => {
             return err(crate::Failure::UnexpectedStatusCode {
-                expected: config.code,
+                expected: config.exit_code,
                 output,
             })
         }

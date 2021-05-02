@@ -11,6 +11,14 @@ fn main() {
             eprintln!("{}", format!("Tests folder is unreadable: {:?}", e).red());
             std::process::exit(1);
         }
+        Err(fbt_lib::Error::CantReadConfig(e)) => {
+            eprintln!("{}", format!("Cant read config file: {:?}", e).red());
+            std::process::exit(1);
+        }
+        Err(fbt_lib::Error::InvalidConfig(e)) => {
+            eprintln!("{}", format!("Cant parse config file: {:?}", e).red());
+            std::process::exit(1);
+        }
     };
 
     for case in cases.iter() {

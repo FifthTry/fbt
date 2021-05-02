@@ -490,22 +490,12 @@ name = "fbt"
 version = "0.1.0"
 dependencies = [
  "colored 2.0.0",
- "fbt-lib 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "fbt-lib",
 ]
 
 [[package]]
 name = "fbt-lib"
 version = "0.1.0"
-dependencies = [
- "ftd",
- "walkdir 2.3.2",
-]
-
-[[package]]
-name = "fbt-lib"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "79dce7b452dd1b8e06c6507d03cc2814760da472af2fb292f6051c6ff74afffb"
 dependencies = [
  "ftd",
  "walkdir 2.3.2",
