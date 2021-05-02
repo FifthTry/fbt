@@ -159,10 +159,7 @@ impl TestConfig {
                     stdout: None,
                     stderr: None,
                     env: config.env.clone(),
-                    clear_env: p1
-                        .header
-                        .bool_optional("clear-env")?
-                        .unwrap_or(config.clear_env),
+                    clear_env: p1.header.bool_with_default("clear-env", config.clear_env)?,
                     output: p1
                         .header
                         .string_optional("output")?
@@ -263,6 +260,7 @@ pub enum Failure {
     },
     CommandFailed {
         io: std::io::Error,
+        reason: &'static str,
     },
     UnexpectedStatusCode {
         expected: i32,

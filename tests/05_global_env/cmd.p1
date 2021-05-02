@@ -1,0 +1,6 @@
+-- fbt:
+cmd: echo $FOO
+
+-- stdout:
+
+hello there

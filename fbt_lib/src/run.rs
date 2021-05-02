@@ -90,12 +90,21 @@ fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
         Err(e) => return err(crate::Failure::CantReadCmdFile { error: e }),
     };
 
-    let fbt = std::env::temp_dir().join("fbt");
-    if fbt.exists() {
-        if let Err(e) = std::fs::remove_dir_all(&fbt) {
+    let fbt = {
+        let fbt = std::env::temp_dir().join("fbt");
+        if fbt.exists() {
+            // if we are not getting a unique directory from temp_dir and its
+            // returning some standard path like /tmp, this fmt may contain the
+            // output of last run, so we must empty it.
+            if let Err(e) = std::fs::remove_dir_all(&fbt) {
+                return err(crate::Failure::Other { io: e });
+            }
+        }
+        if let Err(e) = std::fs::create_dir_all(&fbt) {
             return err(crate::Failure::Other { io: e });
         }
-    }
+        fbt
+    };
 
     let input = entry.join("input");
 
@@ -117,19 +126,30 @@ fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
     let mut child = match config.cmd().current_dir(&dir).spawn() {
         Ok(c) => c,
         Err(e) => {
-            return err(crate::Failure::CommandFailed { io: e });
+            return err(crate::Failure::CommandFailed {
+                io: e,
+                reason: "cant fork process",
+            });
         }
     };
 
     if let (Some(ref stdin), Some(cstdin)) = (config.stdin, &mut child.stdin) {
         if let Err(e) = cstdin.borrow_mut().write_all(stdin.as_bytes()) {
-            return err(crate::Failure::CommandFailed { io: e });
+            return err(crate::Failure::CommandFailed {
+                io: e,
+                reason: "cant write to stdin",
+            });
         }
     }
 
     let output = match child.wait_with_output() {
         Ok(o) => o,
-        Err(e) => return err(crate::Failure::CommandFailed { io: e }),
+        Err(e) => {
+            return err(crate::Failure::CommandFailed {
+                io: e,
+                reason: "cant wait",
+            })
+        }
     };
 
     match output.status.code() {
