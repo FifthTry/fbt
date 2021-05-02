@@ -1,7 +1,7 @@
 pub fn test_all() -> Result<Vec<crate::Case>, crate::Error> {
     let mut results = vec![];
 
-    let config = match std::fs::read_to_string("./tests/ftd.p1") {
+    let config = match std::fs::read_to_string("./tests/fbt.p1") {
         Ok(v) => match crate::Config::parse(v.as_str()) {
             Ok(c) => c,
             Err(e) => return Err(crate::Error::InvalidConfig(e)),
@@ -170,19 +170,19 @@ fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
     }
 
     if let Some(ref stdout) = config.stdout {
-        if std::str::from_utf8(&output.stdout).unwrap_or("").trim() != stdout {
+        if std::str::from_utf8(&output.stdout).unwrap_or("").trim() != stdout.trim() {
             return err(crate::Failure::StdoutMismatch {
                 output,
-                expected: stdout.clone(),
+                expected: stdout.trim().to_string(),
             });
         }
     }
 
     if let Some(ref stderr) = config.stderr {
-        if std::str::from_utf8(&output.stderr).unwrap_or("").trim() != stderr {
+        if std::str::from_utf8(&output.stderr).unwrap_or("").trim() != stderr.trim() {
             return err(crate::Failure::StderrMismatch {
                 output,
-                expected: stderr.clone(),
+                expected: stderr.trim().to_string(),
             });
         }
     }

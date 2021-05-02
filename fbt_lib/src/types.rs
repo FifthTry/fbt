@@ -67,7 +67,7 @@ fn read_env(
         Some(ref v) => {
             let mut m = std::collections::HashMap::new();
             for line in v.split('\n') {
-                let mut parts = line.splitn(1, '=');
+                let mut parts = line.splitn(2, "=");
                 match (parts.next(), parts.next()) {
                     (Some(k), Some(v)) => {
                         m.insert(k.to_string(), v.to_string());
@@ -76,7 +76,7 @@ fn read_env(
                         return Err(ftd::p1::Error::InvalidInput {
                             message: "invalid line in env".to_string(),
                             context: line.to_string(),
-                        })
+                        });
                     }
                 }
             }
