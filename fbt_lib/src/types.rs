@@ -90,7 +90,7 @@ fn read_env(
 
 #[derive(Debug)]
 pub struct TestConfig {
-    cmd: String,
+    pub cmd: String,
     env: Option<std::collections::HashMap<String, String>>,
     clear_env: bool,
     pub output: Option<String>,

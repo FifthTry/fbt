@@ -32,6 +32,8 @@ pub fn test_all() -> Result<Vec<crate::Case>, crate::Error> {
         Err(e) => return Err(crate::Error::CantReadConfig(e)),
     };
 
+    let start = std::time::Instant::now();
+
     for dir in {
         match std::fs::read_dir("./tests") {
             Ok(dir) => dir,
@@ -67,13 +69,17 @@ pub fn test_all() -> Result<Vec<crate::Case>, crate::Error> {
             continue;
         }
 
-        results.push(test_one(&config, dir));
+        results.push(test_one(&config, dir, start));
     }
 
     Ok(results)
 }
 
-fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
+fn test_one(
+    global: &crate::Config,
+    entry: std::path::PathBuf,
+    start0: std::time::Instant,
+) -> crate::Case {
     use std::borrow::BorrowMut;
     use std::io::Write;
 
@@ -92,15 +98,6 @@ fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
         duration: std::time::Instant::now().duration_since(start),
     };
 
-    // Not testing fbt as of now
-    // if id.contains("fbt") {
-    //     return crate::Case {
-    //         id,
-    //         result: Ok(false),
-    //         duration: std::time::Instant::now().duration_since(start),
-    //     };
-    // }
-
     let config = match std::fs::read_to_string(entry.join("cmd.p1")) {
         Ok(c) => match crate::TestConfig::parse(c.as_str(), global) {
             Ok(c) => c,
@@ -113,7 +110,10 @@ fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
     };
 
     let fbt = {
-        let fbt = std::env::temp_dir().join("fbt");
+        let fbt = std::env::temp_dir().join(format!("fbt/{}", {
+            let d = std::time::Instant::now().duration_since(start0);
+            d.as_secs() + d.subsec_nanos() as u64
+        }));
         if fbt.exists() {
             // if we are not getting a unique directory from temp_dir and its
             // returning some standard path like /tmp, this fmt may contain the
@@ -145,6 +145,7 @@ fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
         fbt
     };
 
+    // eprintln!("executing '{}' in {:?}", &config.cmd, &dir);
     let mut child = match config.cmd().current_dir(&dir).spawn() {
         Ok(c) => c,
         Err(e) => {

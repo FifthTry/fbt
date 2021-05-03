@@ -1,3 +1,6 @@
 -- fbt:
 cmd: $FBT_CWD/target/debug/fbt --test
 
+-- stdout:
+
+01_basic: PASSED
