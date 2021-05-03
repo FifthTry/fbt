@@ -1,0 +1,3 @@
+-- fbt:
+cmd: $FBT_CWD/target/debug/fbt --test
+

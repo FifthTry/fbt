@@ -1,5 +1,6 @@
 #[derive(Debug, Default)]
 pub struct Config {
+    pub build: Option<String>,
     cmd: Option<String>,
     env: Option<std::collections::HashMap<String, String>>,
     clear_env: bool,
@@ -21,6 +22,7 @@ impl Config {
                 }
 
                 Config {
+                    build: p1.header.string_optional("build")?,
                     cmd: p1.header.string_optional("cmd")?,
                     exit_code: p1.header.i32_optional("exit-code")?,
                     env: None,
@@ -117,6 +119,12 @@ impl TestConfig {
         if let Some(ref env) = self.env {
             cmd.envs(env.iter());
         }
+        cmd.env(
+            "FBT_CWD",
+            std::env::current_dir()
+                .map(|v| v.to_string_lossy().to_string())
+                .unwrap_or("".into()),
+        );
 
         if self.stdin.is_some() {
             cmd.stdin(std::process::Stdio::piped());
@@ -242,6 +250,8 @@ pub enum Error {
     TestsFolderMissing,
     CantReadConfig(std::io::Error),
     InvalidConfig(ftd::p1::Error),
+    BuildFailedToLaunch(std::io::Error),
+    BuildFailed(std::process::Output),
     TestsFolderNotReadable(std::io::Error),
 }
 
