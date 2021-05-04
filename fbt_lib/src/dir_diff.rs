@@ -25,7 +25,7 @@ pub enum DirDiff {
         found: std::path::PathBuf,
     },
     FileTypeMismatch {
-        file: std::path::PathBuf,
+        file: std::path::PathBuf
         expected: String,
         found: String,
     },
