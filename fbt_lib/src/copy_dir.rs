@@ -1,7 +1,7 @@
 use std::{fs, io, path::Path};
 
 // stackoverflow.com/questions/26958489/how-to-copy-a-folder-recursively-in-rust
-pub fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> {
+pub(crate) fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> {
     fs::create_dir_all(&dst)?;
     for entry in fs::read_dir(src)? {
         let entry = entry?;

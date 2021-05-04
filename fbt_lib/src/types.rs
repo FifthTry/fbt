@@ -1,5 +1,5 @@
 #[derive(Debug, Default)]
-pub struct Config {
+pub(crate) struct Config {
     pub build: Option<String>,
     cmd: Option<String>,
     env: Option<std::collections::HashMap<String, String>>,
@@ -69,7 +69,7 @@ fn read_env(
         Some(ref v) => {
             let mut m = std::collections::HashMap::new();
             for line in v.split('\n') {
-                let mut parts = line.splitn(2, "=");
+                let mut parts = line.splitn(2, '=');
                 match (parts.next(), parts.next()) {
                     (Some(k), Some(v)) => {
                         m.insert(k.to_string(), v.to_string());
@@ -89,7 +89,7 @@ fn read_env(
 }
 
 #[derive(Debug)]
-pub struct TestConfig {
+pub(crate) struct TestConfig {
     pub cmd: String,
     env: Option<std::collections::HashMap<String, String>>,
     clear_env: bool,
@@ -123,7 +123,7 @@ impl TestConfig {
             "FBT_CWD",
             std::env::current_dir()
                 .map(|v| v.to_string_lossy().to_string())
-                .unwrap_or("".into()),
+                .unwrap_or_else(|_| "".into()),
         );
 
         if self.stdin.is_some() {
@@ -149,7 +149,11 @@ impl TestConfig {
                 }
 
                 TestConfig {
-                    cmd: match p1.header.string_optional("cmd")?.or(config.cmd.clone()) {
+                    cmd: match p1
+                        .header
+                        .string_optional("cmd")?
+                        .or_else(|| config.cmd.clone())
+                    {
                         Some(v) => v,
                         None => {
                             return Err(ftd::p1::Error::InvalidInput {
@@ -171,7 +175,7 @@ impl TestConfig {
                     output: p1
                         .header
                         .string_optional("output")?
-                        .or(config.output.clone()),
+                        .or_else(|| config.output.clone()),
                 }
             }
             None => {
@@ -236,16 +240,6 @@ impl TestConfig {
 }
 
 #[derive(Debug)]
-pub struct Case {
-    pub id: String, // 01_basic
-    // if Ok(true) => test passed
-    // if Ok(false) => test skipped
-    // if Err(Failure) => test failed
-    pub result: Result<bool, crate::Failure>,
-    pub duration: std::time::Duration,
-}
-
-#[derive(Debug)]
 pub enum Error {
     TestsFolderMissing,
     CantReadConfig(std::io::Error),
@@ -253,6 +247,16 @@ pub enum Error {
     BuildFailedToLaunch(std::io::Error),
     BuildFailed(std::process::Output),
     TestsFolderNotReadable(std::io::Error),
+}
+
+#[derive(Debug)]
+pub struct Case {
+    pub id: String, // 01_basic
+    // if Ok(true) => test passed
+    // if Ok(false) => test skipped
+    // if Err(Failure) => test failed
+    pub result: Result<bool, crate::Failure>,
+    pub duration: std::time::Duration,
 }
 
 #[derive(Debug)]

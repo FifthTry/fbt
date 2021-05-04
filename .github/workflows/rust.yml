@@ -1,0 +1,45 @@
+name: Rust Checks
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+     - '**.rs'
+  pull_request:
+    branches:
+      - main
+    paths:
+     - '**.rs'
+jobs:
+  everything:
+    name: Rust Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true
+          components: rustfmt, clippy
+      - uses: actions/cache@v2  # there is also https://github.com/Swatinem/rust-cache
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Check if sources are properly formatted
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+      - name: Checking if clippy is happy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all -- -D warnings
+      - name: Testing fbt
+        uses: actions-rs/cargo@v1
+        with:
+          command: run

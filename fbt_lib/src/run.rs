@@ -62,7 +62,7 @@ pub fn test_all() -> Result<Vec<crate::Case>, crate::Error> {
             .map(|v| v.to_str())
             .unwrap_or(None)
             .unwrap_or("")
-            .starts_with(".")
+            .starts_with('.')
         {
             continue;
         }
@@ -221,7 +221,7 @@ fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
         None => dir,
     };
 
-    return crate::Case {
+    crate::Case {
         id: id.clone(),
         result: match crate::dir_diff::diff(output, reference) {
             Ok(Some(diff)) => {
@@ -231,5 +231,5 @@ fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
             Err(e) => return err(crate::Failure::DirDiffError { error: e }),
         },
         duration: std::time::Instant::now().duration_since(start),
-    };
+    }
 }
