@@ -69,7 +69,7 @@ fn read_env(
         Some(ref v) => {
             let mut m = std::collections::HashMap::new();
             for line in v.split('\n') {
-                let mut parts = line.splitn(2, "=");
+                let mut parts = line.splitn(2, '=');
                 match (parts.next(), parts.next()) {
                     (Some(k), Some(v)) => {
                         m.insert(k.to_string(), v.to_string());
@@ -123,7 +123,7 @@ impl TestConfig {
             "FBT_CWD",
             std::env::current_dir()
                 .map(|v| v.to_string_lossy().to_string())
-                .unwrap_or("".into()),
+                .unwrap_or_else(|_| "".into()),
         );
 
         if self.stdin.is_some() {
@@ -149,7 +149,11 @@ impl TestConfig {
                 }
 
                 TestConfig {
-                    cmd: match p1.header.string_optional("cmd")?.or(config.cmd.clone()) {
+                    cmd: match p1
+                        .header
+                        .string_optional("cmd")?
+                        .or_else(|| config.cmd.clone())
+                    {
                         Some(v) => v,
                         None => {
                             return Err(ftd::p1::Error::InvalidInput {
@@ -171,7 +175,7 @@ impl TestConfig {
                     output: p1
                         .header
                         .string_optional("output")?
-                        .or(config.output.clone()),
+                        .or_else(|| config.output.clone()),
                 }
             }
             None => {

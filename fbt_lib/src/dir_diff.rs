@@ -64,6 +64,7 @@ pub fn diff<A: AsRef<std::path::Path>, B: AsRef<std::path::Path>>(
                 eprintln!("a: {:?}", a);
                 eprintln!("b: {:?}", b);
 
+                // TODO: this is fully buggy! loop never loops.
                 let found: std::path::PathBuf = b.path().into();
                 return Ok(Some(if found.is_dir() {
                     DirDiff::UnexpectedFolderFound { found }
