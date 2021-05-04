@@ -32,8 +32,6 @@ pub fn test_all() -> Result<Vec<crate::Case>, crate::Error> {
         Err(e) => return Err(crate::Error::CantReadConfig(e)),
     };
 
-    let start = std::time::Instant::now();
-
     for dir in {
         match std::fs::read_dir("./tests") {
             Ok(dir) => dir,
@@ -69,17 +67,13 @@ pub fn test_all() -> Result<Vec<crate::Case>, crate::Error> {
             continue;
         }
 
-        results.push(test_one(&config, dir, start));
+        results.push(test_one(&config, dir));
     }
 
     Ok(results)
 }
 
-fn test_one(
-    global: &crate::Config,
-    entry: std::path::PathBuf,
-    start0: std::time::Instant,
-) -> crate::Case {
+fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
     use std::borrow::BorrowMut;
     use std::io::Write;
 
@@ -110,10 +104,7 @@ fn test_one(
     };
 
     let fbt = {
-        let fbt = std::env::temp_dir().join(format!("fbt/{}", {
-            let d = std::time::Instant::now().duration_since(start0);
-            d.as_secs() + d.subsec_nanos() as u64
-        }));
+        let fbt = std::env::temp_dir().join(format!("fbt/{}", rand::random::<i64>()));
         if fbt.exists() {
             // if we are not getting a unique directory from temp_dir and its
             // returning some standard path like /tmp, this fmt may contain the

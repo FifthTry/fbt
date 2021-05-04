@@ -10,3 +10,4 @@ homepage = "https://www.fifthtry.com/fifthtry/fbt/"
 [dependencies]
 ftd = "0.1.0"
 walkdir = "2"
+rand = "0"
