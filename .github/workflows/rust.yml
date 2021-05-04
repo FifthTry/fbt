@@ -29,18 +29,17 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      - name: Run cargo fmt
+      - name: Check if sources are properly formatted
         uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all -- --check
-      - name: Run cargo clippy
+      - name: Checking if clippy is happy
         uses: actions-rs/cargo@v1
         with:
           command: clippy
           args: --all -- -D warnings
-      - name: Run ftd test
+      - name: Testing fbt
         uses: actions-rs/cargo@v1
         with:
-          command: test
-          args: --manifest-path ftd/Cargo.toml
+          command: run
