@@ -4,7 +4,7 @@
 
 /// The various errors that can happen when diffing two directories
 #[derive(Debug)]
-pub enum DirDiffError {
+pub(crate) enum DirDiffError {
     Io(std::io::Error),
     StripPrefix(std::path::StripPrefixError),
     WalkDir(walkdir::Error),
@@ -36,7 +36,7 @@ pub enum DirDiff {
     },
 }
 
-pub fn diff<A: AsRef<std::path::Path>, B: AsRef<std::path::Path>>(
+pub(crate) fn diff<A: AsRef<std::path::Path>, B: AsRef<std::path::Path>>(
     _a_base: A,
     _b_base: B,
 ) -> Result<Option<DirDiff>, DirDiffError> {

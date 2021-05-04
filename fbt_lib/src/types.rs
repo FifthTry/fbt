@@ -1,5 +1,5 @@
 #[derive(Debug, Default)]
-pub struct Config {
+pub(crate) struct Config {
     pub build: Option<String>,
     cmd: Option<String>,
     env: Option<std::collections::HashMap<String, String>>,
@@ -89,7 +89,7 @@ fn read_env(
 }
 
 #[derive(Debug)]
-pub struct TestConfig {
+pub(crate) struct TestConfig {
     pub cmd: String,
     env: Option<std::collections::HashMap<String, String>>,
     clear_env: bool,
@@ -240,16 +240,6 @@ impl TestConfig {
 }
 
 #[derive(Debug)]
-pub struct Case {
-    pub id: String, // 01_basic
-    // if Ok(true) => test passed
-    // if Ok(false) => test skipped
-    // if Err(Failure) => test failed
-    pub result: Result<bool, crate::Failure>,
-    pub duration: std::time::Duration,
-}
-
-#[derive(Debug)]
 pub enum Error {
     TestsFolderMissing,
     CantReadConfig(std::io::Error),
@@ -257,6 +247,16 @@ pub enum Error {
     BuildFailedToLaunch(std::io::Error),
     BuildFailed(std::process::Output),
     TestsFolderNotReadable(std::io::Error),
+}
+
+#[derive(Debug)]
+pub struct Case {
+    pub id: String, // 01_basic
+    // if Ok(true) => test passed
+    // if Ok(false) => test skipped
+    // if Err(Failure) => test failed
+    pub result: Result<bool, crate::Failure>,
+    pub duration: std::time::Duration,
 }
 
 #[derive(Debug)]
