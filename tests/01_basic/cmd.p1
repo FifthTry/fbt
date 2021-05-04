@@ -1,6 +1,10 @@
 -- fbt:
 cmd: cat one
 
+This is a dummy test which checks if a simple command works.
+
+No exist code is specified so 0 is assumed. We verify that stdout checks out.
+
 -- stdout:
 
 hello there

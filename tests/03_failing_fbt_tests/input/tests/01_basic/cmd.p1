@@ -1,0 +1,6 @@
+-- fbt:
+cmd: cat one
+
+-- stdout:
+
+hello world

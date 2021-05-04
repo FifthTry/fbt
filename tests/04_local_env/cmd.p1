@@ -1,8 +1,12 @@
 -- fbt:
 
 In this test we see if cmd can be picked from global file, and if that command
-can read the env variable set in global file.
+can read the env variable set in local file.
+
+-- env:
+
+FOO=yo yo
 
 -- stdout:
 
-hello world
+yo yo

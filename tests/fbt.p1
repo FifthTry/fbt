@@ -1,5 +1,6 @@
 -- fbt:
 cmd: echo $FOO
+build: cargo build
 
 -- env:
 

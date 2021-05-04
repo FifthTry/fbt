@@ -3,7 +3,29 @@ pub fn test_all() -> Result<Vec<crate::Case>, crate::Error> {
 
     let config = match std::fs::read_to_string("./tests/fbt.p1") {
         Ok(v) => match crate::Config::parse(v.as_str()) {
-            Ok(c) => c,
+            Ok(config) => {
+                if let Some(ref b) = config.build {
+                    match if cfg!(target_os = "windows") {
+                        let mut c = std::process::Command::new("cmd");
+                        c.args(&["/C", b.as_str()]);
+                        c
+                    } else {
+                        let mut c = std::process::Command::new("sh");
+                        c.args(&["-c", b.as_str()]);
+                        c
+                    }
+                    .output()
+                    {
+                        Ok(v) => {
+                            if !v.status.success() {
+                                return Err(crate::Error::BuildFailed(v));
+                            }
+                        }
+                        Err(e) => return Err(crate::Error::BuildFailedToLaunch(e)),
+                    }
+                }
+                config
+            }
             Err(e) => return Err(crate::Error::InvalidConfig(e)),
         },
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => crate::Config::default(),
@@ -70,15 +92,6 @@ fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
         duration: std::time::Instant::now().duration_since(start),
     };
 
-    // Not testing fbt as of now
-    if id.contains("fbt") {
-        return crate::Case {
-            id,
-            result: Ok(false),
-            duration: std::time::Instant::now().duration_since(start),
-        };
-    }
-
     let config = match std::fs::read_to_string(entry.join("cmd.p1")) {
         Ok(c) => match crate::TestConfig::parse(c.as_str(), global) {
             Ok(c) => c,
@@ -91,7 +104,7 @@ fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
     };
 
     let fbt = {
-        let fbt = std::env::temp_dir().join("fbt");
+        let fbt = std::env::temp_dir().join(format!("fbt/{}", rand::random::<i64>()));
         if fbt.exists() {
             // if we are not getting a unique directory from temp_dir and its
             // returning some standard path like /tmp, this fmt may contain the
@@ -123,6 +136,7 @@ fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
         fbt
     };
 
+    // eprintln!("executing '{}' in {:?}", &config.cmd, &dir);
     let mut child = match config.cmd().current_dir(&dir).spawn() {
         Ok(c) => c,
         Err(e) => {
