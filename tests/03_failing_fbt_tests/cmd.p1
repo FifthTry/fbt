@@ -1,0 +1,9 @@
+-- fbt:
+cmd: $FBT_CWD/target/debug/fbt --test
+exit-code: 2
+
+In this test we check for failing conditions.
+
+-- stdout:
+
+01_basic: FAILED  (StdoutMismatch { expected: "hello world", output: Output { status: ExitStatus(ExitStatus(0)), stdout: "hello there", stderr: "" } })

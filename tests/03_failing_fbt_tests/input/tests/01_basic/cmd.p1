@@ -3,4 +3,4 @@ cmd: cat one
 
 -- stdout:
 
-hello there
+hello world
