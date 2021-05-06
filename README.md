@@ -9,3 +9,6 @@ Start by reading the [introduction](https://www.fifthtry.com/amitu/index/fbt/?co
 Documentation: [fifthtry.com/fifthtry/fbt](https://www.fifthtry.com/fifthtry/fbt/).
 
 Join our [Discord](https://discord.gg/YdYvyPSn9B) for help and discussions.
+
+You can see what we are planning in our [Roadmap](https://www.fifthtry.com/fifthtry/fbt/roadmap/), and what
+we have been up to in the past in [Changelog](https://www.fifthtry.com/fifthtry/fbt/changelog/).
