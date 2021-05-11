@@ -4,7 +4,9 @@ fn main() {
         return;
     }
 
-    fbt_lib::main()
+    if let Some(code) = fbt_lib::main() {
+        std::process::exit(code)
+    }
 }
 
 fn version_asked() -> bool {
