@@ -1,0 +1,11 @@
+-- fbt:
+cmd: $FBT_CWD/target/debug/fbt --version && $FBT_CWD/target/debug/fbt -v
+
+We check if we are printing version number and exiting.
+
+We will have to keep updating this file every time we release a new version.
+
+-- stdout:
+
+fbt: 0.1.4
+fbt: 0.1.4

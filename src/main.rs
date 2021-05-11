@@ -1,6 +1,11 @@
 fn main() {
     use colored::Colorize;
 
+    if version_asked() {
+        println!("fbt: {}", env!("CARGO_PKG_VERSION"));
+        return;
+    }
+
     let cases = match fbt_lib::test_all() {
         Ok(tr) => tr,
         Err(fbt_lib::Error::TestsFolderMissing) => {
@@ -67,5 +72,9 @@ fn main() {
 }
 
 fn is_test() -> bool {
-    std::env::args().any(|e| e == "--test" || e == "--replay")
+    std::env::args().any(|e| e == "--test")
+}
+
+fn version_asked() -> bool {
+    std::env::args().any(|e| e == "--version" || e == "-v")
 }
