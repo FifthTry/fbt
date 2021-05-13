@@ -1,0 +1,3 @@
+-- fbt:
+cmd: echo hello world > foo.txt && echo bar bar dekho > bar.txt
+skip: the output is incorrect

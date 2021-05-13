@@ -51,4 +51,4 @@ diff:
 
 
 04_extra_file: FAILED  (extra file found: ./tests/04_extra_file/output/bar.txt)
-
+05_expected_file_missing: SKIPPED (the output is incorrect)
