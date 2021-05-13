@@ -7,3 +7,5 @@ In this test we check for failing conditions.
 -- stdout:
 
 01_basic: FAILED  (StdoutMismatch { expected: "hello world", output: Output { status: ExitStatus(ExitStatus(0)), stdout: "hello there", stderr: "" } })
+02_output_mismatch: SKIPPED (output not yet implemented)
+

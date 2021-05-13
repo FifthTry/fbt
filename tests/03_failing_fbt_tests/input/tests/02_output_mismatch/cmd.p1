@@ -1,0 +1,3 @@
+-- fbt:
+cmd: echo hello world > foo.txt
+skip: output not yet implemented

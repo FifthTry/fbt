@@ -48,6 +48,28 @@ pub fn main() -> Option<i32> {
                     println!("{}: {}", case.id.blue(), "SKIPPED".magenta(),);
                 }
             }
+            Err(crate::Failure::Skipped { reason }) => {
+                println!("{}: {} ({})", case.id.blue(), "SKIPPED".yellow(), reason,);
+            }
+            Err(crate::Failure::UnexpectedStatusCode { expected, output }) => {
+                any_failed = true;
+                println!(
+                    "{}: {} {} (exit code mismatch, expected={}, found={:?})",
+                    case.id.blue(),
+                    "FAILED".red(),
+                    duration,
+                    expected,
+                    output.status.code()
+                );
+                println!(
+                    "stdout:\n{}\n",
+                    std::str::from_utf8(&output.stdout).unwrap_or("failed to decode")
+                );
+                println!(
+                    "stderr:\n{}\n",
+                    std::str::from_utf8(&output.stderr).unwrap_or("failed to decode")
+                );
+            }
             Err(e) => {
                 any_failed = true;
                 println!(
@@ -102,27 +124,30 @@ pub fn test_all() -> Result<Vec<crate::Case>, crate::Error> {
         Err(e) => return Err(crate::Error::CantReadConfig(e)),
     };
 
-    for dir in {
-        match std::fs::read_dir("./tests") {
-            Ok(dir) => dir,
+    let dirs = {
+        let mut dirs: Vec<_> = match {
+            match std::fs::read_dir("./tests") {
+                Ok(dirs) => dirs,
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                    return Err(crate::Error::TestsFolderMissing)
+                }
+                Err(e) => return Err(crate::Error::TestsFolderNotReadable(e)),
+            }
+        }
+        .map(|res| res.map(|e| e.path()))
+        .collect::<Result<Vec<_>, std::io::Error>>()
+        {
+            Ok(dirs) => dirs,
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
                 return Err(crate::Error::TestsFolderMissing)
             }
             Err(e) => return Err(crate::Error::TestsFolderNotReadable(e)),
-        }
-    } {
-        let dir = match dir {
-            Ok(d) => d.path(),
-            Err(e) => {
-                // TODO: What is going on here? returning TestsFolderNotReadable
-                //  is not great because we are losing the existing results, and
-                //  we ideally want to mark this as failing and continue running
-                //  tests. What error is this? How can I read a directory but
-                //  know the name of this entry?
-                return Err(crate::Error::TestsFolderNotReadable(e));
-            }
         };
+        dirs.sort();
+        dirs
+    };
 
+    for dir in dirs {
         if !dir.is_dir() {
             continue;
         }
@@ -136,7 +161,6 @@ pub fn test_all() -> Result<Vec<crate::Case>, crate::Error> {
         {
             continue;
         }
-
         results.push(test_one(&config, dir));
     }
 
@@ -171,6 +195,10 @@ fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
             return err(crate::Failure::CmdFileMissing)
         }
         Err(e) => return err(crate::Failure::CantReadCmdFile { error: e }),
+    };
+
+    if let Some(reason) = config.skip {
+        return err(crate::Failure::Skipped { reason });
     };
 
     let fbt = {

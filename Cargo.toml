@@ -13,3 +13,6 @@ members = ["fbt_lib"]
 [dependencies]
 # fbt-lib = { version = "0.1.4" }
 fbt-lib = { path = "fbt_lib" }
+
+[dev-dependencies]
+rusty-hook = "0.11.2"

@@ -93,6 +93,7 @@ pub(crate) struct TestConfig {
     pub cmd: String,
     env: Option<std::collections::HashMap<String, String>>,
     clear_env: bool,
+    pub skip: Option<String>,
     pub output: Option<String>,
     pub stdin: Option<String>,
     pub exit_code: i32,
@@ -162,6 +163,7 @@ impl TestConfig {
                             })
                         }
                     },
+                    skip: p1.header.string_optional("skip")?,
                     exit_code: p1
                         .header
                         .i32_optional("exit-code")?
@@ -261,6 +263,9 @@ pub struct Case {
 
 #[derive(Debug)]
 pub enum Failure {
+    Skipped {
+        reason: String,
+    },
     CmdFileMissing,
     CmdFileInvalid {
         error: ftd::p1::Error,
