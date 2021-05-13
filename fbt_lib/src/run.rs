@@ -63,11 +63,11 @@ pub fn main() -> Option<i32> {
                 );
                 println!(
                     "stdout:\n{}\n",
-                    std::str::from_utf8(&output.stdout).unwrap_or_else(|_| "failed to decode")
+                    std::str::from_utf8(&output.stdout).unwrap_or("failed to decode")
                 );
                 println!(
                     "stderr:\n{}\n",
-                    std::str::from_utf8(&output.stderr).unwrap_or_else(|_| "failed to decode")
+                    std::str::from_utf8(&output.stderr).unwrap_or("failed to decode")
                 );
             }
             Err(e) => {
