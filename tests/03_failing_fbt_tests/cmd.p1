@@ -6,6 +6,33 @@ In this test we check for failing conditions.
 
 -- stdout:
 
-01_basic: FAILED  (StdoutMismatch { expected: "hello world", output: Output { status: ExitStatus(ExitStatus(0)), stdout: "hello there", stderr: "" } })
+01_stdout_mismatch: FAILED  (stdout mismatch)
+stdout:
+
+hello there
+
+diff:
+
+\--- original
++++ modified
+@@ -1 +1 @@
+-hello world
++hello there
+
+
 02_output_mismatch: SKIPPED (output not yet implemented)
+03_stderr_mismatch: FAILED  (stderr mismatch)
+stderr:
+
+hello there
+
+diff:
+
+\--- original
++++ modified
+@@ -1 +1 @@
+-hello world
++hello there
+
+
 

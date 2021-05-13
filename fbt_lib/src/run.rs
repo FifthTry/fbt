@@ -70,6 +70,42 @@ pub fn main() -> Option<i32> {
                     std::str::from_utf8(&output.stderr).unwrap_or("failed to decode")
                 );
             }
+            Err(crate::Failure::StdoutMismatch { expected, output }) => {
+                any_failed = true;
+                println!(
+                    "{}: {} {} (stdout mismatch)",
+                    case.id.blue(),
+                    "FAILED".red(),
+                    duration,
+                );
+                let stdout = std::str::from_utf8(&output.stdout).unwrap_or("failed to decode");
+                println!("stdout:\n\n{}\n", stdout);
+                println!(
+                    "diff:\n\n{}\n",
+                    diffy::create_patch(
+                        (expected.to_owned() + "\n").as_str(),
+                        (stdout.to_owned() + "\n").as_str()
+                    )
+                );
+            }
+            Err(crate::Failure::StderrMismatch { expected, output }) => {
+                any_failed = true;
+                println!(
+                    "{}: {} {} (stderr mismatch)",
+                    case.id.blue(),
+                    "FAILED".red(),
+                    duration,
+                );
+                let stderr = std::str::from_utf8(&output.stderr).unwrap_or("failed to decode");
+                println!("stderr:\n\n{}\n", stderr);
+                println!(
+                    "diff:\n\n{}\n",
+                    diffy::create_patch(
+                        (expected.to_owned() + "\n").as_str(),
+                        (stderr.to_owned() + "\n").as_str()
+                    )
+                );
+            }
             Err(e) => {
                 any_failed = true;
                 println!(
