@@ -124,27 +124,30 @@ pub fn test_all() -> Result<Vec<crate::Case>, crate::Error> {
         Err(e) => return Err(crate::Error::CantReadConfig(e)),
     };
 
-    for dir in {
-        match std::fs::read_dir("./tests") {
-            Ok(dir) => dir,
+    let dirs = {
+        let mut dirs: Vec<_> = match {
+            match std::fs::read_dir("./tests") {
+                Ok(dirs) => dirs,
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                    return Err(crate::Error::TestsFolderMissing)
+                }
+                Err(e) => return Err(crate::Error::TestsFolderNotReadable(e)),
+            }
+        }
+        .map(|res| res.map(|e| e.path()))
+        .collect::<Result<Vec<_>, std::io::Error>>()
+        {
+            Ok(dirs) => dirs,
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
                 return Err(crate::Error::TestsFolderMissing)
             }
             Err(e) => return Err(crate::Error::TestsFolderNotReadable(e)),
-        }
-    } {
-        let dir = match dir {
-            Ok(d) => d.path(),
-            Err(e) => {
-                // TODO: What is going on here? returning TestsFolderNotReadable
-                //  is not great because we are losing the existing results, and
-                //  we ideally want to mark this as failing and continue running
-                //  tests. What error is this? How can I read a directory but
-                //  know the name of this entry?
-                return Err(crate::Error::TestsFolderNotReadable(e));
-            }
         };
+        dirs.sort();
+        dirs
+    };
 
+    for dir in dirs {
         if !dir.is_dir() {
             continue;
         }
