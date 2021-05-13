@@ -48,6 +48,28 @@ pub fn main() -> Option<i32> {
                     println!("{}: {}", case.id.blue(), "SKIPPED".magenta(),);
                 }
             }
+            Err(crate::Failure::Skipped { reason }) => {
+                println!("{}: {} ({})", case.id.blue(), "SKIPPED".yellow(), reason,);
+            }
+            Err(crate::Failure::UnexpectedStatusCode { expected, output }) => {
+                any_failed = true;
+                println!(
+                    "{}: {} {} (exit code mismatch, expected={}, found={:?})",
+                    case.id.blue(),
+                    "FAILED".red(),
+                    duration,
+                    expected,
+                    output.status.code()
+                );
+                println!(
+                    "stdout:\n{}\n",
+                    std::str::from_utf8(&output.stdout).unwrap_or_else(|_| "failed to decode")
+                );
+                println!(
+                    "stderr:\n{}\n",
+                    std::str::from_utf8(&output.stderr).unwrap_or_else(|_| "failed to decode")
+                );
+            }
             Err(e) => {
                 any_failed = true;
                 println!(
@@ -136,7 +158,6 @@ pub fn test_all() -> Result<Vec<crate::Case>, crate::Error> {
         {
             continue;
         }
-
         results.push(test_one(&config, dir));
     }
 
@@ -171,6 +192,10 @@ fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
             return err(crate::Failure::CmdFileMissing)
         }
         Err(e) => return err(crate::Failure::CantReadCmdFile { error: e }),
+    };
+
+    if let Some(reason) = config.skip {
+        return err(crate::Failure::Skipped { reason });
     };
 
     let fbt = {
