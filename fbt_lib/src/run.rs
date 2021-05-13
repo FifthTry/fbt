@@ -106,6 +106,50 @@ pub fn main() -> Option<i32> {
                     )
                 );
             }
+            Err(crate::Failure::OutputMismatch { diff }) => {
+                any_failed = true;
+                match diff {
+                    crate::DirDiff::ContentMismatch {
+                        found,
+                        expected,
+                        file,
+                    } => {
+                        println!(
+                            "{}: {} {} (output content mismatch: {})",
+                            case.id.blue(),
+                            "FAILED".red(),
+                            duration,
+                            file.to_str().unwrap_or("cant-read-filename"),
+                        );
+                        println!("found:\n\n{}\n", found.as_str());
+                        println!(
+                            "diff:\n\n{}\n",
+                            diffy::create_patch(
+                                (expected.to_owned() + "\n").as_str(),
+                                (found.to_owned() + "\n").as_str()
+                            )
+                        );
+                    }
+                    crate::DirDiff::UnexpectedFileFound { found } => {
+                        println!(
+                            "{}: {} {} (extra file found: {})",
+                            case.id.blue(),
+                            "FAILED".red(),
+                            duration,
+                            found.to_str().unwrap_or("cant-read-filename"),
+                        );
+                    }
+                    _ => {
+                        println!(
+                            "{}: {} {} (output mismatch: {:?})",
+                            case.id.blue(),
+                            "FAILED".red(),
+                            duration,
+                            diff
+                        );
+                    }
+                }
+            }
             Err(e) => {
                 any_failed = true;
                 println!(

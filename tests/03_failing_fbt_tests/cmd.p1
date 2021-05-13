@@ -20,7 +20,22 @@ diff:
 +hello there
 
 
-02_output_mismatch: SKIPPED (output not yet implemented)
+02_output_mismatch: FAILED  (output content mismatch: ./tests/02_output_mismatch/output/foo.txt)
+found:
+
+hello world2
+
+
+diff:
+
+\--- original
++++ modified
+@@ -1,2 +1,2 @@
+-hello world
++hello world2
+
+
+
 03_stderr_mismatch: FAILED  (stderr mismatch)
 stderr:
 
@@ -35,4 +50,5 @@ diff:
 +hello there
 
 
-
+04_extra_file: FAILED  (extra file found: ./tests/04_extra_file/output/bar.txt)
+05_expected_file_missing: SKIPPED (the output is incorrect)
