@@ -130,6 +130,15 @@ pub fn main() -> Option<i32> {
                             )
                         );
                     }
+                    crate::DirDiff::UnexpectedFileFound { found } => {
+                        println!(
+                            "{}: {} {} (extra file found: {})",
+                            case.id.blue(),
+                            "FAILED".red(),
+                            duration,
+                            found.to_str().unwrap_or("cant-read-filename"),
+                        );
+                    }
                     _ => {
                         println!(
                             "{}: {} {} (output mismatch: {:?})",

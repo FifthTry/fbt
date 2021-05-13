@@ -50,4 +50,5 @@ diff:
 +hello there
 
 
+04_extra_file: FAILED  (extra file found: ./tests/04_extra_file/output/bar.txt)
 
