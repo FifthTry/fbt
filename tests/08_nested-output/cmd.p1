@@ -1,0 +1,3 @@
+-- fbt:
+cmd: mkdir foo && echo hello world > foo/foo.txt
+output: foo
