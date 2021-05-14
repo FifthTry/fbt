@@ -76,8 +76,8 @@ pub(crate) fn diff<A: AsRef<std::path::Path>, B: AsRef<std::path::Path>>(
                 let b_content = std::fs::read_to_string(b.path())?;
                 if a_content != b_content {
                     return Ok(Some(DirDiff::ContentMismatch {
-                        expected: a_content,
-                        found: b_content,
+                        expected: b_content,
+                        found: a_content,
                         file: found,
                     }));
                 }

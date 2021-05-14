@@ -23,7 +23,7 @@ diff:
 02_output_mismatch: FAILED  (output content mismatch: ./tests/02_output_mismatch/output/foo.txt)
 found:
 
-hello world2
+hello world
 
 
 diff:
@@ -31,8 +31,8 @@ diff:
 \--- original
 +++ modified
 @@ -1,2 +1,2 @@
--hello world
-+hello world2
+-hello world2
++hello world
 
 
 
