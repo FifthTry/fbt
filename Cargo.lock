@@ -538,7 +538,6 @@ dependencies = [
  "diffy",
  "ftd",
  "rand",
- "walkdir 2.3.2",
 ]
 
 [[package]]

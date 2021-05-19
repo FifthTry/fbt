@@ -314,6 +314,8 @@ fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
         fbt
     };
 
+    let dir_as_string = dir.to_string_lossy().to_string();
+
     // eprintln!("executing '{}' in {:?}", &config.cmd, &dir);
     let mut child = match config.cmd().current_dir(&dir).spawn() {
         Ok(c) => c,
@@ -362,7 +364,11 @@ fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
     }
 
     if let Some(ref stdout) = config.stdout {
-        if std::str::from_utf8(&output.stdout).unwrap_or("").trim() != stdout.trim() {
+        if std::str::from_utf8(&output.stdout.replace(dir_as_string.as_str(), ""))
+            .unwrap_or("")
+            .trim()
+            != stdout.trim()
+        {
             return err(crate::Failure::StdoutMismatch {
                 output,
                 expected: stdout.trim().to_string(),
@@ -371,7 +377,11 @@ fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
     }
 
     if let Some(ref stderr) = config.stderr {
-        if std::str::from_utf8(&output.stderr).unwrap_or("").trim() != stderr.trim() {
+        if std::str::from_utf8(&output.stderr.replace(dir_as_string.as_str(), ""))
+            .unwrap_or("")
+            .trim()
+            != stderr.trim()
+        {
             return err(crate::Failure::StderrMismatch {
                 output,
                 expected: stderr.trim().to_string(),

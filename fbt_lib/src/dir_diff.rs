@@ -7,7 +7,6 @@
 pub enum DirDiffError {
     Io(std::io::Error),
     StripPrefix(std::path::StripPrefixError),
-    WalkDir(walkdir::Error),
 }
 
 #[derive(Debug)]
@@ -40,9 +39,6 @@ pub(crate) fn diff<A: AsRef<std::path::Path>, B: AsRef<std::path::Path>>(
     a_base: A,
     b_base: B,
 ) -> Result<Option<DirDiff>, DirDiffError> {
-    let mut a_walker = walk_dir(a_base)?;
-    let mut b_walker = walk_dir(b_base)?;
-
     loop {
         match (a_walker.next(), b_walker.next()) {
             (Some(a), Some(b)) => {
@@ -111,17 +107,6 @@ pub(crate) fn diff<A: AsRef<std::path::Path>, B: AsRef<std::path::Path>>(
     Ok(None)
 }
 
-fn walk_dir<P: AsRef<std::path::Path>>(path: P) -> Result<walkdir::IntoIter, std::io::Error> {
-    let mut walkdir = walkdir::WalkDir::new(path)
-        .sort_by(compare_by_file_name)
-        .into_iter();
-    if let Some(Err(e)) = walkdir.next() {
-        Err(e.into())
-    } else {
-        Ok(walkdir)
-    }
-}
-
 fn compare_by_file_name(a: &walkdir::DirEntry, b: &walkdir::DirEntry) -> std::cmp::Ordering {
     a.file_name().cmp(&b.file_name())
 }
@@ -135,11 +120,5 @@ impl From<std::io::Error> for DirDiffError {
 impl From<std::path::StripPrefixError> for DirDiffError {
     fn from(e: std::path::StripPrefixError) -> DirDiffError {
         DirDiffError::StripPrefix(e)
-    }
-}
-
-impl From<walkdir::Error> for DirDiffError {
-    fn from(e: walkdir::Error) -> DirDiffError {
-        DirDiffError::WalkDir(e)
     }
 }
