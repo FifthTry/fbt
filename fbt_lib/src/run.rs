@@ -59,16 +59,10 @@ pub fn main() -> Option<i32> {
                     "FAILED".red(),
                     duration,
                     expected,
-                    output.status.code()
+                    output.exit_code
                 );
-                println!(
-                    "stdout:\n{}\n",
-                    std::str::from_utf8(&output.stdout).unwrap_or("failed to decode")
-                );
-                println!(
-                    "stderr:\n{}\n",
-                    std::str::from_utf8(&output.stderr).unwrap_or("failed to decode")
-                );
+                println!("stdout:\n{}\n", &output.stdout);
+                println!("stderr:\n{}\n", &output.stderr);
             }
             Err(crate::Failure::StdoutMismatch { expected, output }) => {
                 any_failed = true;
@@ -78,13 +72,12 @@ pub fn main() -> Option<i32> {
                     "FAILED".red(),
                     duration,
                 );
-                let stdout = std::str::from_utf8(&output.stdout).unwrap_or("failed to decode");
-                println!("stdout:\n\n{}\n", stdout);
+                println!("stdout:\n\n{}\n", &output.stdout);
                 println!(
                     "diff:\n\n{}\n",
                     diffy::create_patch(
                         (expected.to_owned() + "\n").as_str(),
-                        (stdout.to_owned() + "\n").as_str()
+                        (output.stdout.clone() + "\n").as_str()
                     )
                 );
             }
@@ -96,13 +89,12 @@ pub fn main() -> Option<i32> {
                     "FAILED".red(),
                     duration,
                 );
-                let stderr = std::str::from_utf8(&output.stderr).unwrap_or("failed to decode");
-                println!("stderr:\n\n{}\n", stderr);
+                println!("stderr:\n\n{}\n", &output.stderr);
                 println!(
                     "diff:\n\n{}\n",
                     diffy::create_patch(
                         (expected.to_owned() + "\n").as_str(),
-                        (stderr.to_owned() + "\n").as_str()
+                        (output.stderr.clone() + "\n").as_str()
                     )
                 );
             }
@@ -248,8 +240,7 @@ pub fn test_all() -> Result<Vec<crate::Case>, crate::Error> {
 }
 
 fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
-    use std::borrow::BorrowMut;
-    use std::io::Write;
+    use std::{borrow::BorrowMut, convert::TryFrom, io::Write};
 
     let id = entry
         .file_name()
@@ -314,8 +305,6 @@ fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
         fbt
     };
 
-    let dir_as_string = dir.to_string_lossy().to_string();
-
     // eprintln!("executing '{}' in {:?}", &config.cmd, &dir);
     let mut child = match config.cmd().current_dir(&dir).spawn() {
         Ok(c) => c,
@@ -346,30 +335,22 @@ fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
         }
     };
 
-    match output.status.code() {
-        Some(code) => {
-            if code != config.exit_code {
-                return err(crate::Failure::UnexpectedStatusCode {
-                    expected: config.exit_code,
-                    output,
-                });
-            }
+    let output = match crate::Output::try_from(&output) {
+        Ok(o) => o,
+        Err(reason) => {
+            return err(crate::Failure::CantReadOutput { reason, output });
         }
-        None => {
-            return err(crate::Failure::UnexpectedStatusCode {
-                expected: config.exit_code,
-                output,
-            })
-        }
+    };
+
+    if output.exit_code != config.exit_code {
+        return err(crate::Failure::UnexpectedStatusCode {
+            expected: config.exit_code,
+            output,
+        });
     }
 
     if let Some(ref stdout) = config.stdout {
-        if std::str::from_utf8(&output.stdout)
-            .unwrap_or("")
-            .trim()
-            .replace(dir_as_string.as_str(), "")
-            != stdout.trim()
-        {
+        if output.stdout != stdout.trim() {
             return err(crate::Failure::StdoutMismatch {
                 output,
                 expected: stdout.trim().to_string(),
@@ -378,12 +359,7 @@ fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
     }
 
     if let Some(ref stderr) = config.stderr {
-        if std::str::from_utf8(&output.stderr)
-            .unwrap_or("")
-            .trim()
-            .replace(dir_as_string.as_str(), "")
-            != stderr.trim()
-        {
+        if output.stderr != stderr.trim() {
             return err(crate::Failure::StderrMismatch {
                 output,
                 expected: stderr.trim().to_string(),

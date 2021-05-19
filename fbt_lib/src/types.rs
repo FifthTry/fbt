@@ -1,3 +1,5 @@
+use std::convert::TryFrom;
+
 #[derive(Debug, Default)]
 pub(crate) struct Config {
     pub build: Option<String>,
@@ -262,6 +264,38 @@ pub struct Case {
 }
 
 #[derive(Debug)]
+pub struct Output {
+    pub exit_code: i32,
+    pub stdout: String,
+    pub stderr: String,
+}
+
+impl TryFrom<&std::process::Output> for Output {
+    type Error = &'static str;
+
+    fn try_from(o: &std::process::Output) -> std::result::Result<Self, Self::Error> {
+        Ok(Output {
+            exit_code: match o.status.code() {
+                Some(code) => code,
+                None => return Err("cant read exit_code"),
+            },
+            stdout: {
+                std::str::from_utf8(&o.stdout)
+                    .unwrap_or("")
+                    .trim()
+                    .to_string()
+            },
+            stderr: {
+                std::str::from_utf8(&o.stderr)
+                    .unwrap_or("")
+                    .trim()
+                    .to_string()
+            },
+        })
+    }
+}
+
+#[derive(Debug)]
 pub enum Failure {
     Skipped {
         reason: String,
@@ -283,15 +317,19 @@ pub enum Failure {
     },
     UnexpectedStatusCode {
         expected: i32,
+        output: Output,
+    },
+    CantReadOutput {
         output: std::process::Output,
+        reason: &'static str,
     },
     StdoutMismatch {
         expected: String,
-        output: std::process::Output,
+        output: Output,
     },
     StderrMismatch {
         expected: String,
-        output: std::process::Output,
+        output: Output,
     },
     DirDiffError {
         error: crate::DirDiffError,
