@@ -308,18 +308,18 @@ fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
     // eprintln!("executing '{}' in {:?}", &config.cmd, &dir);
     let mut child = match config.cmd().current_dir(&dir).spawn() {
         Ok(c) => c,
-        Err(e) => {
+        Err(io) => {
             return err(crate::Failure::CommandFailed {
-                io: e,
+                io,
                 reason: "cant fork process",
             });
         }
     };
 
     if let (Some(ref stdin), Some(cstdin)) = (config.stdin, &mut child.stdin) {
-        if let Err(e) = cstdin.borrow_mut().write_all(stdin.as_bytes()) {
+        if let Err(io) = cstdin.borrow_mut().write_all(stdin.as_bytes()) {
             return err(crate::Failure::CommandFailed {
-                io: e,
+                io,
                 reason: "cant write to stdin",
             });
         }
@@ -327,16 +327,16 @@ fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
 
     let output = match child.wait_with_output() {
         Ok(o) => o,
-        Err(e) => {
+        Err(io) => {
             return err(crate::Failure::CommandFailed {
-                io: e,
+                io,
                 reason: "cant wait",
             })
         }
     };
 
     let output = match crate::Output::try_from(&output) {
-        Ok(o) => o,
+        Ok(o) => o.replace(dir.to_string_lossy().to_string()),
         Err(reason) => {
             return err(crate::Failure::CantReadOutput { reason, output });
         }

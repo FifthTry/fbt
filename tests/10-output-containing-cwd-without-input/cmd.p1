@@ -1,0 +1,15 @@
+-- fbt:
+cmd: echo $PWD && echo $PWD/foo 1>&2
+
+In this test we ensure that we strip out temp dir from stdout and stderr.
+
+This one is without input folder present in test case.
+
+-- stdout:
+
+<cwd>
+
+
+-- stderr:
+
+<cwd>/foo

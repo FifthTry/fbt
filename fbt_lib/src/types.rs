@@ -270,6 +270,25 @@ pub struct Output {
     pub stderr: String,
 }
 
+impl Output {
+    pub fn replace(mut self, v: String) -> Self {
+        // on mac /private is added to temp folders
+        // amitu@MacBook-Pro fbt % ls /var/folders/kf/jfmbkscj7757mmr29mn3rksm0000gn/T/fbt/874862845293569866/input
+        // one
+        // amitu@MacBook-Pro fbt % ls /private/var/folders/kf/jfmbkscj7757mmr29mn3rksm0000gn/T/fbt/874862845293569866/input
+        // one
+        // both of them are the same folder, and we see the former path, but the lauched processes see the later
+
+        let private_v = format!("/private{}", v.as_str());
+        self.stdout = self.stdout.replace(private_v.as_str(), "<cwd>");
+        self.stderr = self.stderr.replace(private_v.as_str(), "<cwd>");
+        self.stdout = self.stdout.replace(v.as_str(), "<cwd>");
+        self.stderr = self.stderr.replace(v.as_str(), "<cwd>");
+
+        self
+    }
+}
+
 impl TryFrom<&std::process::Output> for Output {
     type Error = &'static str;
 
