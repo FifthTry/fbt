@@ -1,6 +1,6 @@
 [package]
 name = "fbt-lib"
-version = "0.1.7"
+version = "0.1.8"
 authors = ["Sitesh <siteshpattanaik001@gmail.com>", "Amit Upadhyay <upadhyay@gmail.com>"]
 edition = "2018"
 description = "folder based testing tool (library)"
@@ -8,7 +8,7 @@ license = "BSD-2-Clause"
 homepage = "https://www.fifthtry.com/fifthtry/fbt/"
 
 [dependencies]
-ftd = "0.1.0"
+ftd = "0.1.3"
 walkdir = "2"
 rand = "0"
 colored = "2"
