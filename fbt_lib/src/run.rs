@@ -1,11 +1,11 @@
 pub fn main() -> Option<i32> {
+    main_with_filters(&[])
+}
+
+pub fn main_with_filters(filters: &[String]) -> Option<i32> {
     use colored::Colorize;
 
-    let mut args = std::env::args();
-    args.next(); // get rid of first element (name of binary)
-    let args: Vec<_> = args.filter(|v| !v.starts_with('-')).collect();
-
-    let cases = match test_all(&args) {
+    let cases = match test_all(filters) {
         Ok(tr) => tr,
         Err(crate::Error::TestsFolderMissing) => {
             eprintln!("{}", "Tests folder is missing".red());
