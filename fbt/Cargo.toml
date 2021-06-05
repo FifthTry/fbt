@@ -8,7 +8,7 @@ license = "BSD-2-Clause"
 homepage = "https://www.fifthtry.com/fifthtry/fbt/"
 
 [dependencies]
-fbt-lib = { path = "../fbt_lib", version = "0.1.8" }
+fbt-lib = { path = "../fbt_lib", version = "0.1.10" }
 
 [dev-dependencies]
 rusty-hook = "0.11.2"
