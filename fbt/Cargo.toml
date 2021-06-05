@@ -1,6 +1,6 @@
 [package]
 name = "fbt"
-version = "0.1.8"
+version = "0.1.9"
 authors = ["Sitesh <siteshpattanaik001@gmail.com>", "Amit Upadhyay <upadhyay@gmail.com>"]
 edition = "2018"
 description = "folder based testing tool (library)"
