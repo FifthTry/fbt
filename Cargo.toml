@@ -1,18 +1,3 @@
-[package]
-name = "fbt"
-version = "0.1.8"
-authors = ["Sitesh <siteshpattanaik001@gmail.com>", "Amit Upadhyay <upadhyay@gmail.com>"]
-edition = "2018"
-description = "folder based testing tool (library)"
-license = "BSD-2-Clause"
-homepage = "https://www.fifthtry.com/fifthtry/fbt/"
-
 [workspace]
-members = ["fbt_lib"]
+members = ["fbt_lib", "fbt"]
 
-[dependencies]
-# fbt-lib = { version = "0.1.8" }
-fbt-lib = { path = "fbt_lib" }
-
-[dev-dependencies]
-rusty-hook = "0.11.2"
