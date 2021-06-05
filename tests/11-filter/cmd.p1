@@ -1,0 +1,10 @@
+-- fbt:
+cmd: $FBT_CWD/target/debug/fbt --test fail
+
+In this test we check for failing conditions.
+
+-- stdout:
+
+01_basic: SKIPPED
+02_failing: PASSED
+03_failing2: PASSED

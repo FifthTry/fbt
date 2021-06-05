@@ -1,0 +1,12 @@
+-- fbt:
+cmd: cat one1
+exit-code: 1
+
+In this test we are verify that a failing command matches the exit-code. We also
+verify stdout and stderr.
+
+-- stdout:
+
+-- stderr:
+
+cat: one1: No such file or directory

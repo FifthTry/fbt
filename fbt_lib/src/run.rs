@@ -1,7 +1,11 @@
 pub fn main() -> Option<i32> {
     use colored::Colorize;
 
-    let cases = match test_all() {
+    let mut args = std::env::args();
+    args.next(); // get rid of first element (name of binary)
+    let args: Vec<_> = args.filter(|v| !v.starts_with('-')).collect();
+
+    let cases = match test_all(&args) {
         Ok(tr) => tr,
         Err(crate::Error::TestsFolderMissing) => {
             eprintln!("{}", "Tests folder is missing".red());
@@ -37,13 +41,13 @@ pub fn main() -> Option<i32> {
         let duration = if is_test() {
             "".to_string()
         } else {
-            format!("in {}", format!("{:?}", &case.duration).yellow())
+            format!(" in {}", format!("{:?}", &case.duration).yellow())
         };
 
         match &case.result {
             Ok(status) => {
                 if *status {
-                    println!("{}: {} {}", case.id.blue(), "PASSED".green(), duration);
+                    println!("{}: {}{}", case.id.blue(), "PASSED".green(), duration);
                 } else {
                     println!("{}: {}", case.id.blue(), "SKIPPED".magenta(),);
                 }
@@ -162,7 +166,7 @@ pub fn main() -> Option<i32> {
     None
 }
 
-pub fn test_all() -> Result<Vec<crate::Case>, crate::Error> {
+pub fn test_all(filters: &[String]) -> Result<Vec<crate::Case>, crate::Error> {
     let mut results = vec![];
 
     let config = match std::fs::read_to_string("./tests/fbt.p1") {
@@ -224,22 +228,44 @@ pub fn test_all() -> Result<Vec<crate::Case>, crate::Error> {
             continue;
         }
 
-        if dir
+        let dir_name = dir
             .file_name()
             .map(|v| v.to_str())
             .unwrap_or(None)
-            .unwrap_or("")
-            .starts_with('.')
-        {
+            .unwrap_or("");
+
+        if dir_name.starts_with('.') {
             continue;
         }
-        results.push(test_one(&config, dir));
+
+        // see if filter matches, else continue
+        let start = std::time::Instant::now();
+
+        let filter_is_not_empty = !filters.is_empty();
+        let something_matches = !filters
+            .iter()
+            .any(|v| dir_name.to_lowercase().contains(&v.to_lowercase()));
+
+        if filter_is_not_empty && something_matches {
+            results.push(crate::Case {
+                id: dir_name.to_string(),
+                result: Ok(false),
+                duration: std::time::Instant::now().duration_since(start),
+            });
+            continue;
+        }
+
+        results.push(test_one(&config, dir, start));
     }
 
     Ok(results)
 }
 
-fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
+fn test_one(
+    global: &crate::Config,
+    entry: std::path::PathBuf,
+    start: std::time::Instant,
+) -> crate::Case {
     use std::{borrow::BorrowMut, convert::TryFrom, io::Write};
 
     let id = entry
@@ -249,7 +275,6 @@ fn test_one(global: &crate::Config, entry: std::path::PathBuf) -> crate::Case {
         .map(ToString::to_string)
         .unwrap_or_else(|| format!("{:?}", entry.file_name()));
 
-    let start = std::time::Instant::now();
     let id_ = id.as_str();
     let err = |e: crate::Failure| crate::Case {
         id: id_.to_string(),
