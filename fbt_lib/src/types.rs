@@ -11,31 +11,42 @@ pub(crate) struct Config {
 }
 
 impl Config {
-    pub fn parse(s: &str) -> ftd::p1::Result<Self> {
-        let parsed = ftd::p1::parse(s)?;
+    pub fn parse(s: &str, doc_id: &str) -> ftd::p1::Result<Config> {
+        let parsed = ftd::p1::parse(s, doc_id)?;
         let mut iter = parsed.iter();
         let mut c = match iter.next() {
             Some(p1) => {
                 if p1.name != "fbt" {
-                    return Err(ftd::p1::Error::InvalidInput {
+                    return Err(ftd::p1::Error::ParseError {
                         message: "first section's name is not 'fbt'".to_string(),
-                        context: p1.name.clone(),
+                        doc_id: doc_id.to_string(),
+                        line_number: p1.line_number,
                     });
                 }
 
                 Config {
-                    build: p1.header.string_optional("build")?,
-                    cmd: p1.header.string_optional("cmd")?,
-                    exit_code: p1.header.i32_optional("exit-code")?,
+                    build: p1.header.string_optional(doc_id, p1.line_number, "build")?,
+                    cmd: p1.header.string_optional(doc_id, p1.line_number, "cmd")?,
+                    exit_code: p1
+                        .header
+                        .i32_optional(doc_id, p1.line_number, "exit-code")?,
                     env: None,
-                    clear_env: p1.header.bool_with_default("clear-env", false)?,
-                    output: p1.header.string_optional("output")?,
+                    clear_env: p1.header.bool_with_default(
+                        doc_id,
+                        p1.line_number,
+                        "clear-env",
+                        false,
+                    )?,
+                    output: p1
+                        .header
+                        .string_optional(doc_id, p1.line_number, "output")?,
                 }
             }
             None => {
-                return Err(ftd::p1::Error::InvalidInput {
+                return Err(ftd::p1::Error::ParseError {
                     message: "no sections found".to_string(),
-                    context: s.to_string(),
+                    doc_id: doc_id.to_string(),
+                    line_number: 0,
                 });
             }
         };
@@ -44,17 +55,19 @@ impl Config {
             match s.name.as_str() {
                 "env" => {
                     if c.env.is_some() {
-                        return Err(ftd::p1::Error::InvalidInput {
+                        return Err(ftd::p1::Error::ParseError {
                             message: "env provided more than once".to_string(),
-                            context: s.to_string(),
+                            doc_id: doc_id.to_string(),
+                            line_number: s.line_number,
                         });
                     }
-                    c.env = read_env(&s.body)?;
+                    c.env = read_env(doc_id, &s.body)?;
                 }
                 _ => {
-                    return Err(ftd::p1::Error::InvalidInput {
+                    return Err(ftd::p1::Error::ParseError {
                         message: "unknown section".to_string(),
-                        context: s.name.clone(),
+                        doc_id: doc_id.to_string(),
+                        line_number: s.line_number,
                     });
                 }
             }
@@ -65,10 +78,11 @@ impl Config {
 }
 
 fn read_env(
-    body: &Option<String>,
+    doc_id: &str,
+    body: &Option<(usize, String)>,
 ) -> ftd::p1::Result<Option<std::collections::HashMap<String, String>>> {
     Ok(match body {
-        Some(ref v) => {
+        Some((line_number, v)) => {
             let mut m = std::collections::HashMap::new();
             for line in v.split('\n') {
                 let mut parts = line.splitn(2, '=');
@@ -77,9 +91,10 @@ fn read_env(
                         m.insert(k.to_string(), v.to_string());
                     }
                     _ => {
-                        return Err(ftd::p1::Error::InvalidInput {
+                        return Err(ftd::p1::Error::ParseError {
                             message: "invalid line in env".to_string(),
-                            context: line.to_string(),
+                            doc_id: doc_id.to_string(),
+                            line_number: *line_number,
                         });
                     }
                 }
@@ -139,53 +154,61 @@ impl TestConfig {
         cmd
     }
 
-    pub fn parse(s: &str, config: &Config) -> ftd::p1::Result<Self> {
-        let parsed = ftd::p1::parse(s)?;
+    pub fn parse(s: &str, doc_id: &str, config: &Config) -> ftd::p1::Result<Self> {
+        let parsed = ftd::p1::parse(s, doc_id)?;
         let mut iter = parsed.iter();
         let mut c = match iter.next() {
             Some(p1) => {
                 if p1.name != "fbt" {
-                    return Err(ftd::p1::Error::InvalidInput {
+                    return Err(ftd::p1::Error::ParseError {
                         message: "first section's name is not 'fbt'".to_string(),
-                        context: p1.name.clone(),
+                        doc_id: doc_id.to_string(),
+                        line_number: p1.line_number,
                     });
                 }
 
                 TestConfig {
                     cmd: match p1
                         .header
-                        .string_optional("cmd")?
+                        .string_optional(doc_id, p1.line_number, "cmd")?
                         .or_else(|| config.cmd.clone())
                     {
                         Some(v) => v,
                         None => {
-                            return Err(ftd::p1::Error::InvalidInput {
+                            return Err(ftd::p1::Error::ParseError {
                                 message: "cmd not found".to_string(),
-                                context: s.to_string(),
+                                doc_id: doc_id.to_string(),
+                                line_number: p1.line_number,
                             })
                         }
                     },
-                    skip: p1.header.string_optional("skip")?,
+                    skip: p1.header.string_optional(doc_id, p1.line_number, "skip")?,
                     exit_code: p1
                         .header
-                        .i32_optional("exit-code")?
+                        .i32_optional(doc_id, p1.line_number, "exit-code")?
                         .or(config.exit_code)
                         .unwrap_or(0),
                     stdin: None,
                     stdout: None,
                     stderr: None,
                     env: config.env.clone(),
-                    clear_env: p1.header.bool_with_default("clear-env", config.clear_env)?,
+                    clear_env: p1.header.bool_with_default(
+                        doc_id,
+                        p1.line_number,
+                        "clear-env",
+                        config.clear_env,
+                    )?,
                     output: p1
                         .header
-                        .string_optional("output")?
+                        .string_optional(doc_id, p1.line_number, "output")?
                         .or_else(|| config.output.clone()),
                 }
             }
             None => {
-                return Err(ftd::p1::Error::InvalidInput {
+                return Err(ftd::p1::Error::ParseError {
                     message: "no sections found".to_string(),
-                    context: s.to_string(),
+                    doc_id: doc_id.to_string(),
+                    line_number: 0,
                 });
             }
         };
@@ -194,33 +217,36 @@ impl TestConfig {
             match s.name.as_str() {
                 "stdin" => {
                     if c.stdin.is_some() {
-                        return Err(ftd::p1::Error::InvalidInput {
+                        return Err(ftd::p1::Error::ParseError {
                             message: "stdin provided more than once".to_string(),
-                            context: s.to_string(),
+                            doc_id: doc_id.to_string(),
+                            line_number: s.line_number,
                         });
                     }
-                    c.stdin = s.body.clone();
+                    c.stdin = s.body.as_ref().map(|(_, v)| v.clone());
                 }
                 "stdout" => {
                     if c.stdout.is_some() {
-                        return Err(ftd::p1::Error::InvalidInput {
+                        return Err(ftd::p1::Error::ParseError {
                             message: "stdout provided more than once".to_string(),
-                            context: s.to_string(),
+                            doc_id: doc_id.to_string(),
+                            line_number: s.line_number,
                         });
                     }
-                    c.stdout = s.body.clone();
+                    c.stdout = s.body.as_ref().map(|(_, v)| v.clone());
                 }
                 "stderr" => {
                     if c.stderr.is_some() {
-                        return Err(ftd::p1::Error::InvalidInput {
+                        return Err(ftd::p1::Error::ParseError {
                             message: "stderr provided more than once".to_string(),
-                            context: s.to_string(),
+                            doc_id: doc_id.to_string(),
+                            line_number: s.line_number,
                         });
                     }
-                    c.stderr = s.body.clone();
+                    c.stderr = s.body.as_ref().map(|(_, v)| v.clone());
                 }
                 "env" => {
-                    c.env = match (read_env(&s.body)?, &c.env) {
+                    c.env = match (read_env(doc_id, &s.body)?, &c.env) {
                         (Some(v), Some(e)) => {
                             let mut e = e.clone();
                             e.extend(v.into_iter());
@@ -231,9 +257,10 @@ impl TestConfig {
                     };
                 }
                 _ => {
-                    return Err(ftd::p1::Error::InvalidInput {
+                    return Err(ftd::p1::Error::ParseError {
                         message: "unknown section".to_string(),
-                        context: s.name.clone(),
+                        doc_id: doc_id.to_string(),
+                        line_number: s.line_number,
                     });
                 }
             }

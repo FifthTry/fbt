@@ -1,14 +1,14 @@
 [package]
 name = "fbt"
-version = "0.1.10"
+version = "0.1.11"
 authors = ["Sitesh <siteshpattanaik001@gmail.com>", "Amit Upadhyay <upadhyay@gmail.com>"]
-edition = "2018"
+edition = "2021"
 description = "folder based testing tool (library)"
 license = "BSD-2-Clause"
 homepage = "https://www.fifthtry.com/fifthtry/fbt/"
 
 [dependencies]
-fbt-lib = { path = "../fbt_lib", version = "0.1.10" }
+fbt-lib = { path = "../fbt_lib", version = "0.1.11" }
 
 [dev-dependencies]
 rusty-hook = "0.11.2"

@@ -170,7 +170,7 @@ pub fn test_all(filters: &[String]) -> Result<Vec<crate::Case>, crate::Error> {
     let mut results = vec![];
 
     let config = match std::fs::read_to_string("./tests/fbt.p1") {
-        Ok(v) => match crate::Config::parse(v.as_str()) {
+        Ok(v) => match crate::Config::parse(v.as_str(), "./tests/fbt.p1") {
             Ok(config) => {
                 if let Some(ref b) = config.build {
                     match if cfg!(target_os = "windows") {
@@ -266,7 +266,7 @@ fn test_one(
     entry: std::path::PathBuf,
     start: std::time::Instant,
 ) -> crate::Case {
-    use std::{borrow::BorrowMut, convert::TryFrom, io::Write};
+    use std::{borrow::BorrowMut, io::Write};
 
     let id = entry
         .file_name()
@@ -283,10 +283,12 @@ fn test_one(
     };
 
     let config = match std::fs::read_to_string(entry.join("cmd.p1")) {
-        Ok(c) => match crate::TestConfig::parse(c.as_str(), global) {
-            Ok(c) => c,
-            Err(e) => return err(crate::Failure::CmdFileInvalid { error: e }),
-        },
+        Ok(c) => {
+            match crate::TestConfig::parse(c.as_str(), format!("{}/cmd.p1", id).as_str(), global) {
+                Ok(c) => c,
+                Err(e) => return err(crate::Failure::CmdFileInvalid { error: e }),
+            }
+        }
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
             return err(crate::Failure::CmdFileMissing)
         }
