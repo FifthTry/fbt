@@ -61,6 +61,16 @@ pub(crate) fn diff<A: AsRef<std::path::Path>, B: AsRef<std::path::Path>>(
                 // TODO: this is dummy code to test stuff
                 let a = a?;
                 let b = b?;
+                if a.metadata()
+                    .expect("Unable to retrieve metadata for found file/folder")
+                    .is_dir()
+                    && b.metadata()
+                        .expect("Unable to retrieve metadata for found file/folder")
+                        .is_dir()
+                {
+                    // If
+                    return diff(a.path(), b.path());
+                }
 
                 let found: std::path::PathBuf = b.path().into();
 
