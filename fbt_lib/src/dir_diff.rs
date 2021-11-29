@@ -68,7 +68,7 @@ pub(crate) fn diff<A: AsRef<std::path::Path>, B: AsRef<std::path::Path>>(
                         .expect("Unable to retrieve metadata for found file/folder")
                         .is_dir()
                 {
-                    // If
+                    // Recursively check for the files in the directory
                     return diff(a.path(), b.path());
                 }
 
