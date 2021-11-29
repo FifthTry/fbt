@@ -86,22 +86,22 @@ pub(crate) fn diff<A: AsRef<std::path::Path>, B: AsRef<std::path::Path>>(
                 // we have something in b, but a is done, lets iterate over all
                 // entries in b, and put them in UnexpectedFileFound and
                 // UnexpectedFolderFound
-                let found: std::path::PathBuf = b?.path().into();
-                return Ok(Some(if found.is_dir() {
-                    DirDiff::UnexpectedFolderFound { found }
+                let expected: std::path::PathBuf = b?.path().into();
+                return Ok(Some(if expected.is_dir() {
+                    DirDiff::ExpectedFolderMissing { expected }
                 } else {
-                    DirDiff::UnexpectedFileFound { found }
+                    DirDiff::ExpectedFileMissing { expected }
                 }));
             }
             (Some(a), None) => {
                 // we have something in a, but b is done, lets iterate over all
                 // entries in a, and put them in ExpectedFileMissing and
                 // ExpectedFolderMissing
-                let expected: std::path::PathBuf = a?.path().into();
-                return Ok(Some(if expected.is_dir() {
-                    DirDiff::ExpectedFolderMissing { expected }
+                let found: std::path::PathBuf = a?.path().into();
+                return Ok(Some(if found.is_dir() {
+                    DirDiff::UnexpectedFolderFound { found }
                 } else {
-                    DirDiff::ExpectedFileMissing { expected }
+                    DirDiff::UnexpectedFileFound { found }
                 }));
             }
             (None, None) => break,
