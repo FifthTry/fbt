@@ -8,7 +8,7 @@ license = "BSD-2-Clause"
 homepage = "https://www.fifthtry.com/fifthtry/fbt/"
 
 [dependencies]
-ftd = { version = "0.1.11", path = "../../ftd" }
+ftd = { version = "0.1.11" }
 walkdir = "2"
 rand = "0"
 colored = "2"

@@ -441,6 +441,8 @@ checksum = "c1fd087255f739f4f1aeea69f11b72f8080e9c2e7645cd06955dad4a178a49e3"
 [[package]]
 name = "ftd"
 version = "0.1.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eed51686248c5ce05846e0f3fd030563ba45d7ba653f94cbd4aee915d680e346"
 dependencies = [
  "comrak",
  "css-color-parser",
