@@ -388,7 +388,7 @@ dependencies = [
 
 [[package]]
 name = "fbt"
-version = "0.1.11"
+version = "0.1.12"
 dependencies = [
  "fbt-lib",
  "rusty-hook",
@@ -396,7 +396,7 @@ dependencies = [
 
 [[package]]
 name = "fbt-lib"
-version = "0.1.11"
+version = "0.1.12"
 dependencies = [
  "colored",
  "diffy",
