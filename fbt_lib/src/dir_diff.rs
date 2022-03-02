@@ -8,6 +8,7 @@ pub enum DirDiffError {
     Io(std::io::Error),
     StripPrefix(std::path::StripPrefixError),
     WalkDir(walkdir::Error),
+    UTF8Parsing(std::string::FromUtf8Error),
 }
 
 #[derive(Debug)]
@@ -34,12 +35,16 @@ pub enum DirDiff {
         expected: String,
         found: String,
     },
+    NonContentFileMismatch {
+        file: std::path::PathBuf,
+    },
 }
 
 pub(crate) fn diff<A: AsRef<std::path::Path>, B: AsRef<std::path::Path>>(
     a_base: A,
     b_base: B,
 ) -> Result<Option<DirDiff>, DirDiffError> {
+    use sha2::Digest;
     let mut a_walker = walk_dir(a_base)?;
     let mut b_walker = walk_dir(b_base)?;
 
@@ -81,15 +86,23 @@ pub(crate) fn diff<A: AsRef<std::path::Path>, B: AsRef<std::path::Path>>(
                         DirDiff::UnexpectedFileFound { found }
                     }));
                 }
-
-                let a_content = std::fs::read_to_string(a.path())?;
-                let b_content = std::fs::read_to_string(b.path())?;
-                if a_content != b_content {
-                    return Ok(Some(DirDiff::ContentMismatch {
-                        expected: b_content,
-                        found: a_content,
-                        file: found,
-                    }));
+                if let (Ok(a_content), Ok(b_content)) = (
+                    std::fs::read_to_string(a.path()),
+                    std::fs::read_to_string(b.path()),
+                ) {
+                    if a_content != b_content {
+                        return Ok(Some(DirDiff::ContentMismatch {
+                            expected: b_content,
+                            found: a_content,
+                            file: found,
+                        }));
+                    }
+                } else if let (Ok(a_content), Ok(b_content)) =
+                    (std::fs::read(a.path()), std::fs::read(b.path()))
+                {
+                    if !sha2::Sha256::digest(a_content).eq(&sha2::Sha256::digest(b_content)) {
+                        return Ok(Some(DirDiff::NonContentFileMismatch { file: found }));
+                    }
                 }
             }
             (None, Some(b)) => {
