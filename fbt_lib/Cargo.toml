@@ -1,7 +1,11 @@
 [package]
 name = "fbt-lib"
-version = "0.1.16"
-authors = ["Sitesh <siteshpattanaik001@gmail.com>", "Amit Upadhyay <upadhyay@gmail.com>"]
+version = "0.1.17"
+authors = [
+    "Amit Upadhyay <upadhyay@gmail.com>",
+    "Shobhit Sharma <shobhit@fifthtry.com>",
+    "Sitesh <siteshpattanaik001@gmail.com>",
+]
 edition = "2021"
 description = "folder based testing tool (library)"
 license = "BSD-2-Clause"
