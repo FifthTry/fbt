@@ -345,7 +345,7 @@ dependencies = [
 
 [[package]]
 name = "fbt"
-version = "0.1.16"
+version = "0.1.17"
 dependencies = [
  "fbt-lib",
  "rusty-hook",
