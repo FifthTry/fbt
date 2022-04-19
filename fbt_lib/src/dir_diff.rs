@@ -134,6 +134,31 @@ pub(crate) fn diff<A: AsRef<std::path::Path>, B: AsRef<std::path::Path>>(
     Ok(None)
 }
 
+pub(crate) fn fix<A: AsRef<std::path::Path>, B: AsRef<std::path::Path>>(
+    a_base: A,
+    b_base: B,
+) -> Result<(), DirDiffError> {
+    copy_dir_all(a_base, b_base)?;
+    Ok(())
+}
+
+fn copy_dir_all(
+    src: impl AsRef<std::path::Path>,
+    dst: impl AsRef<std::path::Path>,
+) -> std::io::Result<()> {
+    std::fs::create_dir_all(&dst)?;
+    let dir = std::fs::read_dir(src)?;
+    for child in dir {
+        let child = child?;
+        if child.metadata()?.is_dir() {
+            copy_dir_all(child.path(), dst.as_ref().join(child.file_name()))?;
+        } else {
+            std::fs::copy(child.path(), dst.as_ref().join(child.file_name()))?;
+        }
+    }
+    Ok(())
+}
+
 fn walk_dir<P: AsRef<std::path::Path>>(path: P) -> Result<walkdir::IntoIter, std::io::Error> {
     let mut walkdir = walkdir::WalkDir::new(path)
         .sort_by(compare_by_file_name)

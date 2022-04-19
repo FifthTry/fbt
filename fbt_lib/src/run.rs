@@ -1,11 +1,11 @@
 pub fn main() -> Option<i32> {
-    main_with_filters(&[])
+    main_with_filters(&[], false)
 }
 
-pub fn main_with_filters(filters: &[String]) -> Option<i32> {
+pub fn main_with_filters(filters: &[String], to_fix: bool) -> Option<i32> {
     use colored::Colorize;
 
-    let cases = match test_all(filters) {
+    let cases = match test_all(filters, to_fix) {
         Ok(tr) => tr,
         Err(crate::Error::TestsFolderMissing) => {
             eprintln!("{}", "Tests folder is missing".red());
@@ -58,7 +58,7 @@ pub fn main_with_filters(filters: &[String]) -> Option<i32> {
             Err(crate::Failure::UnexpectedStatusCode { expected, output }) => {
                 any_failed = true;
                 println!(
-                    "{}: {} {} (exit code mismatch, expected={}, found={:?})",
+                    "{}: {}{} (exit code mismatch, expected={}, found={:?})",
                     case.id.blue(),
                     "FAILED".red(),
                     duration,
@@ -71,7 +71,7 @@ pub fn main_with_filters(filters: &[String]) -> Option<i32> {
             Err(crate::Failure::StdoutMismatch { expected, output }) => {
                 any_failed = true;
                 println!(
-                    "{}: {} {} (stdout mismatch)",
+                    "{}: {}{} (stdout mismatch)",
                     case.id.blue(),
                     "FAILED".red(),
                     duration,
@@ -88,7 +88,7 @@ pub fn main_with_filters(filters: &[String]) -> Option<i32> {
             Err(crate::Failure::StderrMismatch { expected, output }) => {
                 any_failed = true;
                 println!(
-                    "{}: {} {} (stderr mismatch)",
+                    "{}: {}{} (stderr mismatch)",
                     case.id.blue(),
                     "FAILED".red(),
                     duration,
@@ -111,7 +111,7 @@ pub fn main_with_filters(filters: &[String]) -> Option<i32> {
                         file,
                     } => {
                         println!(
-                            "{}: {} {} (output content mismatch: {})",
+                            "{}: {}{} (output content mismatch: {})",
                             case.id.blue(),
                             "FAILED".red(),
                             duration,
@@ -128,7 +128,7 @@ pub fn main_with_filters(filters: &[String]) -> Option<i32> {
                     }
                     crate::DirDiff::UnexpectedFileFound { found } => {
                         println!(
-                            "{}: {} {} (extra file found: {})",
+                            "{}: {}{} (extra file found: {})",
                             case.id.blue(),
                             "FAILED".red(),
                             duration,
@@ -137,7 +137,7 @@ pub fn main_with_filters(filters: &[String]) -> Option<i32> {
                     }
                     _ => {
                         println!(
-                            "{}: {} {} (output mismatch: {:?})",
+                            "{}: {}{} (output mismatch: {:?})",
                             case.id.blue(),
                             "FAILED".red(),
                             duration,
@@ -146,10 +146,18 @@ pub fn main_with_filters(filters: &[String]) -> Option<i32> {
                     }
                 }
             }
+            Err(crate::Failure::FixMismatch ) => {
+                println!(
+                    "{}: {}{}",
+                    case.id.blue(),
+                    "FIXED".purple(),
+                    duration,
+                );
+            }
             Err(e) => {
                 any_failed = true;
                 println!(
-                    "{}: {} {} ({:?})",
+                    "{}: {}{} ({:?})",
                     case.id.blue(),
                     "FAILED".red(),
                     duration,
@@ -166,7 +174,7 @@ pub fn main_with_filters(filters: &[String]) -> Option<i32> {
     None
 }
 
-pub fn test_all(filters: &[String]) -> Result<Vec<crate::Case>, crate::Error> {
+pub fn test_all(filters: &[String], to_fix: bool) -> Result<Vec<crate::Case>, crate::Error> {
     let mut results = vec![];
 
     let config = match std::fs::read_to_string("./tests/fbt.p1") {
@@ -255,7 +263,7 @@ pub fn test_all(filters: &[String]) -> Result<Vec<crate::Case>, crate::Error> {
             continue;
         }
 
-        results.push(test_one(&config, dir, start));
+        results.push(test_one(&config, dir, start, to_fix));
     }
 
     Ok(results)
@@ -265,6 +273,7 @@ fn test_one(
     global: &crate::Config,
     entry: std::path::PathBuf,
     start: std::time::Instant,
+    to_fix: bool
 ) -> crate::Case {
     use std::{borrow::BorrowMut, io::Write};
 
@@ -413,6 +422,15 @@ fn test_one(
         Some(v) => dir.join(v),
         None => dir,
     };
+
+    if to_fix {
+        match crate::dir_diff::fix(output, reference) {
+            Ok(()) => {
+                return err(crate::Failure::FixMismatch);
+            }
+            Err(e) => return err(crate::Failure::DirDiffError { error: e }),
+        }
+    }
 
     crate::Case {
         id: id.clone(),

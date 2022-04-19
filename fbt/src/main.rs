@@ -6,9 +6,10 @@ fn main() {
 
     let mut args = std::env::args();
     args.next(); // get rid of first element (name of binary)
-    let args: Vec<_> = args.filter(|v| !v.starts_with('-')).collect();
+    let to_fix = args.find(|v| v == "--fix" || v == "-f").is_some();
+    let args: Vec<_> = args.filter(|v| !v.starts_with("-")).collect();
 
-    if let Some(code) = fbt_lib::main_with_filters(&args) {
+    if let Some(code) = fbt_lib::main_with_filters(&args, to_fix) {
         std::process::exit(code)
     }
 }
