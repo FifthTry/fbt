@@ -146,13 +146,8 @@ pub fn main_with_filters(filters: &[String], to_fix: bool) -> Option<i32> {
                     }
                 }
             }
-            Err(crate::Failure::FixMismatch ) => {
-                println!(
-                    "{}: {}{}",
-                    case.id.blue(),
-                    "FIXED".purple(),
-                    duration,
-                );
+            Err(crate::Failure::FixMismatch) => {
+                println!("{}: {}{}", case.id.blue(), "FIXED".purple(), duration,);
             }
             Err(e) => {
                 any_failed = true;
@@ -273,7 +268,7 @@ fn test_one(
     global: &crate::Config,
     entry: std::path::PathBuf,
     start: std::time::Instant,
-    to_fix: bool
+    to_fix: bool,
 ) -> crate::Case {
     use std::{borrow::BorrowMut, io::Write};
 
