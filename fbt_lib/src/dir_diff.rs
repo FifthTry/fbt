@@ -146,6 +146,9 @@ fn copy_dir_all(
     src: impl AsRef<std::path::Path>,
     dst: impl AsRef<std::path::Path>,
 ) -> std::io::Result<()> {
+    if dst.as_ref().exists() {
+        std::fs::remove_dir_all(&dst)?;
+    }
     std::fs::create_dir_all(&dst)?;
     let dir = std::fs::read_dir(src)?;
     for child in dir {
