@@ -383,4 +383,5 @@ pub enum Failure {
     OutputMismatch {
         diff: crate::DirDiff,
     },
+    FixMismatch,
 }

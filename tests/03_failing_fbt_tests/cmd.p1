@@ -6,7 +6,7 @@ In this test we check for failing conditions.
 
 -- stdout:
 
-01_stdout_mismatch: FAILED  (stdout mismatch)
+01_stdout_mismatch: FAILED (stdout mismatch)
 stdout:
 
 hello there
@@ -20,7 +20,7 @@ diff:
 +hello there
 
 
-02_output_mismatch: FAILED  (output content mismatch: ./tests/02_output_mismatch/output/foo.txt)
+02_output_mismatch: FAILED (output content mismatch: ./tests/02_output_mismatch/output/foo.txt)
 found:
 
 hello world
@@ -36,7 +36,7 @@ diff:
 
 
 
-03_stderr_mismatch: FAILED  (stderr mismatch)
+03_stderr_mismatch: FAILED (stderr mismatch)
 stderr:
 
 hello there
@@ -50,5 +50,5 @@ diff:
 +hello there
 
 
-04_extra_file: FAILED  (extra file found: ./tests/04_extra_file/output/bar.txt)
+04_extra_file: FAILED (extra file found: ./tests/04_extra_file/output/bar.txt)
 05_expected_file_missing: SKIPPED (the output is incorrect)
