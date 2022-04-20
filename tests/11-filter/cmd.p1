@@ -5,6 +5,6 @@ In this test we check for failing conditions.
 
 -- stdout:
 
-01_basic: SKIPPED
+01_basic: PASSED
 02_failing: PASSED
 03_failing2: PASSED
