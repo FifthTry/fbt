@@ -419,11 +419,11 @@ fn test_one(
     };
 
     if to_fix {
-        match crate::dir_diff::fix(output, reference) {
+        return match crate::dir_diff::fix(output, reference) {
             Ok(()) => {
-                return err(crate::Failure::FixMismatch);
+                err(crate::Failure::FixMismatch)
             }
-            Err(e) => return err(crate::Failure::DirDiffError { error: e }),
+            Err(e) => err(crate::Failure::DirDiffError { error: e }),
         }
     }
 

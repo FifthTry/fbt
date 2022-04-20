@@ -138,11 +138,11 @@ pub(crate) fn fix<A: AsRef<std::path::Path>, B: AsRef<std::path::Path>>(
     a_base: A,
     b_base: B,
 ) -> Result<(), DirDiffError> {
-    copy_dir_all(a_base, b_base)?;
+    fix_(a_base, b_base)?;
     Ok(())
 }
 
-fn copy_dir_all(
+fn fix_(
     src: impl AsRef<std::path::Path>,
     dst: impl AsRef<std::path::Path>,
 ) -> std::io::Result<()> {
@@ -154,7 +154,7 @@ fn copy_dir_all(
     for child in dir {
         let child = child?;
         if child.metadata()?.is_dir() {
-            copy_dir_all(child.path(), dst.as_ref().join(child.file_name()))?;
+            fix_(child.path(), dst.as_ref().join(child.file_name()))?;
         } else {
             std::fs::copy(child.path(), dst.as_ref().join(child.file_name()))?;
         }
