@@ -142,10 +142,7 @@ pub(crate) fn fix<A: AsRef<std::path::Path>, B: AsRef<std::path::Path>>(
     Ok(())
 }
 
-fn fix_(
-    src: impl AsRef<std::path::Path>,
-    dst: impl AsRef<std::path::Path>,
-) -> std::io::Result<()> {
+fn fix_(src: impl AsRef<std::path::Path>, dst: impl AsRef<std::path::Path>) -> std::io::Result<()> {
     if dst.as_ref().exists() {
         std::fs::remove_dir_all(&dst)?;
     }
