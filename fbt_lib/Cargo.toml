@@ -12,9 +12,13 @@ license = "BSD-2-Clause"
 homepage = "https://www.fifthtry.com/fifthtry/fbt/"
 
 [dependencies]
-ftd = "0.1.17"
 walkdir = "2"
 rand = "0"
 colored = "2"
-diffy = "0.2.1"
+diffy = "0.2"
 sha2 = "0.10"
+
+[dependencies.ftd]
+git = "https://github.com/FifthTry/ftd"
+rev = "68fdacb"
+
