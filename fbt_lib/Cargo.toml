@@ -15,7 +15,7 @@ homepage = "https://www.fifthtry.com/fifthtry/fbt/"
 walkdir = "2"
 rand = "0"
 colored = "2"
-diffy = "0.2"
+diffy = "0.3"
 sha2 = "0.10"
 
 [dependencies.ftd]
