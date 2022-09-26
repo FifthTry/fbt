@@ -20,5 +20,5 @@ sha2 = "0.10"
 
 [dependencies.ftd]
 git = "https://github.com/FifthTry/ftd"
-rev = "68fdacb"
+rev = "b698bd6"
 
