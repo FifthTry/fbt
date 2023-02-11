@@ -9,7 +9,7 @@ fn main() {
     let to_fix = args.any(|v| v == "--fix" || v == "-f");
     let args: Vec<_> = args.filter(|v| !v.starts_with('-')).collect();
 
-    if let Some(code) = fbt_lib::main_with_filters(&args, to_fix) {
+    if let Some(code) = fbt_lib::main_with_filters(&args, to_fix, None) {
         std::process::exit(code)
     }
 }

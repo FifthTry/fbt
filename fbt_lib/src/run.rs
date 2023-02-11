@@ -1,11 +1,15 @@
 pub fn main() -> Option<i32> {
-    main_with_filters(&[], false)
+    main_with_filters(&[], false, None)
 }
 
-pub fn main_with_filters(filters: &[String], to_fix: bool) -> Option<i32> {
+pub fn main_with_test_folder(folder: Option<String>) -> Option<i32> {
+    main_with_filters(&[], false, folder)
+}
+
+pub fn main_with_filters(filters: &[String], to_fix: bool, folder: Option<String>) -> Option<i32> {
     use colored::Colorize;
 
-    let cases = match test_all(filters, to_fix) {
+    let cases = match test_all(filters, to_fix, folder) {
         Ok(tr) => tr,
         Err(crate::Error::TestsFolderMissing) => {
             eprintln!("{}", "Tests folder is missing".red());
@@ -169,11 +173,19 @@ pub fn main_with_filters(filters: &[String], to_fix: bool) -> Option<i32> {
     None
 }
 
-pub fn test_all(filters: &[String], to_fix: bool) -> Result<Vec<crate::Case>, crate::Error> {
+pub fn test_all(
+    filters: &[String],
+    to_fix: bool,
+    folder: Option<String>,
+) -> Result<Vec<crate::Case>, crate::Error> {
     let mut results = vec![];
 
-    let config = match std::fs::read_to_string("./tests/fbt.p1") {
-        Ok(v) => match crate::Config::parse(v.as_str(), "./tests/fbt.p1") {
+    let test_folder = folder
+        .map(|v| v.trim_end_matches('/').to_string())
+        .unwrap_or("./tests".to_string());
+    let config = match std::fs::read_to_string(format!("{}/fbt.p1", test_folder).as_str()) {
+        Ok(v) => match crate::Config::parse(v.as_str(), format!("{}/fbt.p1", test_folder).as_str())
+        {
             Ok(config) => {
                 if let Some(ref b) = config.build {
                     match if cfg!(target_os = "windows") {
@@ -205,7 +217,7 @@ pub fn test_all(filters: &[String], to_fix: bool) -> Result<Vec<crate::Case>, cr
 
     let dirs = {
         let mut dirs: Vec<_> = match {
-            match std::fs::read_dir("./tests") {
+            match std::fs::read_dir(test_folder.as_str()) {
                 Ok(dirs) => dirs,
                 Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
                     return Err(crate::Error::TestsFolderMissing)
