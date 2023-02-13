@@ -2,8 +2,8 @@ pub fn main() -> Option<i32> {
     main_with_filters(&[], false, None)
 }
 
-pub fn main_with_test_folder(folder: Option<String>) -> Option<i32> {
-    main_with_filters(&[], false, folder)
+pub fn main_with_test_folder(folder: &str) -> Option<i32> {
+    main_with_filters(&[], false, Some(folder.to_string()))
 }
 
 pub fn main_with_filters(filters: &[String], to_fix: bool, folder: Option<String>) -> Option<i32> {
