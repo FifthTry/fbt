@@ -14,11 +14,11 @@ homepage = "https://www.fifthtry.com/fifthtry/fbt/"
 [dependencies]
 walkdir = "2"
 rand = "0"
-colored = "2"
+colored = { git = "https://github.com/amitu/colored", rev = "6eb9cc5" }
 diffy = "0.3"
 sha2 = "0.10"
 
 [dependencies.ftd]
-git = "https://github.com/FifthTry/ftd"
-rev = "b698bd6"
+git = "https://github.com/fastn-stack/fastn/"
+rev = "168ca45ae6c52fcc9921544cd92429e887459379"
 
